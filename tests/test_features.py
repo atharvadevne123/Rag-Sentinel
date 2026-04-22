@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from app.features import extract_query_features, FEATURE_NAMES, generate_training_corpus
 
 

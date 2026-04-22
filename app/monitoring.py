@@ -55,7 +55,7 @@ def get_recent_scores(db: Session, hours: int = 24) -> List[float]:
 
 def get_system_metrics(db: Session) -> dict:
     total = db.query(PredictionLog).count()
-    anomalies = db.query(PredictionLog).filter(PredictionLog.is_anomaly == True).count()
+    anomalies = db.query(PredictionLog).filter(PredictionLog.is_anomaly).count()
     recent_scores = get_recent_scores(db, hours=1)
     last_drift = db.query(DriftLog).order_by(DriftLog.created_at.desc()).first()
 

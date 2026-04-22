@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch
 import os
 
 os.makedirs("screenshots", exist_ok=True)

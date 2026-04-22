@@ -1,5 +1,3 @@
-import numpy as np
-import pytest
 from app.features import extract_query_features, generate_training_corpus
 from app.model import train_model, predict_anomaly
 

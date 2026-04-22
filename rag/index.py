@@ -53,7 +53,6 @@ class SentinelIndex:
             self.doc_ids.append(doc_id)
 
         if self._faiss_available and self._faiss_index is not None:
-            import faiss
             self._faiss_index.add(embeddings)
 
     def search(self, query_vec: np.ndarray, top_k: int = 3) -> List[Tuple[str, str, float]]:
@@ -61,7 +60,6 @@ class SentinelIndex:
             return []
 
         if self._faiss_available and self._faiss_index is not None and self._faiss_index.ntotal > 0:
-            import faiss
             q = query_vec.reshape(1, -1)
             scores, indices = self._faiss_index.search(q, min(top_k, len(self.chunks)))
             results = []

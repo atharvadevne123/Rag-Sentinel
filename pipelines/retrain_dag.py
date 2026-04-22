@@ -35,7 +35,7 @@ def check_drift(**context):
 
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from app.database import PredictionLog, DriftLog, Base
+    from app.database import DriftLog, Base
     from app.monitoring import compute_drift, get_recent_scores
 
     db_url = os.getenv("DATABASE_URL", "sqlite:///./rag_sentinel.db")
@@ -100,7 +100,6 @@ def validate_model(**context):
     """Sanity-check the freshly trained model."""
     import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    import numpy as np
     from app.model import load_model, predict_anomaly
     from app.features import extract_query_features
 

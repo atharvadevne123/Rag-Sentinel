@@ -1,7 +1,6 @@
 import os
 import pytest
-import numpy as np
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
