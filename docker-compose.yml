@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://sentinel:sentinel@db:5432/rag_sentinel
+      - MODEL_PATH=/app/model.joblib
+      - METRICS_PATH=/app/metrics.json
+      - FAISS_INDEX_PATH=/app/rag_index.faiss
+    volumes:
+      - model_data:/app/model_data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: rag_sentinel
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d rag_sentinel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  airflow-init:
+    image: apache/airflow:2.9.0-python3.11
+    command: airflow db init
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://sentinel:sentinel@db:5432/rag_sentinel
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - orchestration
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.0-python3.11
+    command: airflow scheduler
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://sentinel:sentinel@db:5432/rag_sentinel
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+    volumes:
+      - ./pipelines:/opt/airflow/dags
+    depends_on:
+      - airflow-init
+    profiles:
+      - orchestration
+
+volumes:
+  pg_data:
+  model_data:
