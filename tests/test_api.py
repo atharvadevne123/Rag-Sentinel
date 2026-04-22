@@ -2,8 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy.pool import StaticPool
+
 from app.database import Base, get_db
 from app.features import generate_training_corpus
 
@@ -29,7 +29,7 @@ def client():
         finally:
             db.close()
 
-    from app.main import app, _model_bundle
+    from app.main import _model_bundle, app
     _model_bundle.update(bundle)
     app.dependency_overrides[get_db] = override_db
 

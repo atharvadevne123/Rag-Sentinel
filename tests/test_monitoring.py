@@ -1,4 +1,10 @@
-from app.monitoring import compute_drift, log_prediction, log_drift, get_recent_scores, get_system_metrics
+from app.monitoring import (
+    compute_drift,
+    get_recent_scores,
+    get_system_metrics,
+    log_drift,
+    log_prediction,
+)
 
 
 def test_compute_drift_no_drift():

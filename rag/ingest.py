@@ -1,6 +1,7 @@
 import re
 from typing import List
-from rag.index import get_index, CHUNK_SIZE, CHUNK_OVERLAP
+
+from rag.index import CHUNK_OVERLAP, CHUNK_SIZE, get_index
 
 _chunk_store: dict = {}  # doc_id -> list of chunk texts
 

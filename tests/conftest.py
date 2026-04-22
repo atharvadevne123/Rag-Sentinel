@@ -1,9 +1,10 @@
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_rag_sentinel.db")
 os.environ.setdefault("MODEL_PATH", "/tmp/test_model.joblib")
@@ -31,8 +32,8 @@ def db_session(test_engine):
 
 @pytest.fixture(scope="session")
 def trained_model():
-    from app.model import train_model
     from app.features import generate_training_corpus
+    from app.model import train_model
     X, y = generate_training_corpus(n_normal=100, n_anomaly=20, seed=0)
     bundle, metrics = train_model(X, y)
     return bundle, metrics
@@ -42,8 +43,8 @@ def trained_model():
 def api_client(trained_model):
     bundle, _ = trained_model
     with patch("app.main._model_bundle", bundle):
-        from app.main import app
         from app.database import init_db
+        from app.main import app
         init_db()
         client = TestClient(app, raise_server_exceptions=False)
         yield client

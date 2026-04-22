@@ -1,11 +1,12 @@
 import json
 import os
+
 import joblib
 import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from app.features import generate_training_corpus
 

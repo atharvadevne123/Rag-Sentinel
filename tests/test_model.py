@@ -1,5 +1,5 @@
 from app.features import extract_query_features, generate_training_corpus
-from app.model import train_model, predict_anomaly
+from app.model import predict_anomaly, train_model
 
 
 def test_train_model_returns_bundle_and_metrics():

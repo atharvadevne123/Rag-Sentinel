@@ -2,15 +2,19 @@ import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.database import init_db, get_db
+from app.database import get_db, init_db
 from app.features import extract_query_features
 from app.model import load_model, predict_anomaly, train_model
 from app.monitoring import (
-    log_prediction, log_drift, get_recent_scores, get_system_metrics, compute_drift,
+    compute_drift,
+    get_recent_scores,
+    get_system_metrics,
+    log_drift,
+    log_prediction,
 )
 
 _model_bundle = {}
@@ -117,8 +121,8 @@ def predict(req: QueryRequest, background_tasks: BackgroundTasks, db: Session = 
 
 @app.post("/ingest")
 def ingest(req: IngestRequest, db: Session = Depends(get_db)):
-    from rag.ingest import ingest_document
     from app.database import DocumentIndex
+    from rag.ingest import ingest_document
     try:
         chunk_count = ingest_document(req.text, req.doc_id)
     except Exception as e:

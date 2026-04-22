@@ -1,5 +1,6 @@
 import numpy as np
-from app.features import extract_query_features, FEATURE_NAMES, generate_training_corpus
+
+from app.features import FEATURE_NAMES, extract_query_features, generate_training_corpus
 
 
 def test_feature_vector_shape():

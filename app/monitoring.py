@@ -2,10 +2,11 @@ import json
 import os
 from datetime import datetime, timedelta
 from typing import List
+
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
 
-from app.database import PredictionLog, DriftLog
+from app.database import DriftLog, PredictionLog
 
 
 def compute_drift(reference: List[float], current: List[float]) -> dict:

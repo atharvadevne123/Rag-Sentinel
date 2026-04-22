@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch
 import os
+
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
 
 os.makedirs("screenshots", exist_ok=True)
 

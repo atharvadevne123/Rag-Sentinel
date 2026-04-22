@@ -1,7 +1,8 @@
-import os
 import hashlib
-import numpy as np
+import os
 from typing import List, Tuple
+
+import numpy as np
 
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "128"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "16"))

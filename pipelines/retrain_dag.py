@@ -6,15 +6,15 @@ from datetime import datetime, timedelta
 
 try:
     from airflow import DAG
-    from airflow.operators.python import PythonOperator
     from airflow.operators.bash import BashOperator
+    from airflow.operators.python import PythonOperator
     AIRFLOW_AVAILABLE = True
 except ImportError:
     AIRFLOW_AVAILABLE = False
 
-import os
 import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,8 @@ def check_drift(**context):
 
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from app.database import DriftLog, Base
+
+    from app.database import Base, DriftLog
     from app.monitoring import compute_drift, get_recent_scores
 
     db_url = os.getenv("DATABASE_URL", "sqlite:///./rag_sentinel.db")
@@ -100,8 +101,8 @@ def validate_model(**context):
     """Sanity-check the freshly trained model."""
     import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from app.model import load_model, predict_anomaly
     from app.features import extract_query_features
+    from app.model import load_model, predict_anomaly
 
     bundle = load_model()
 

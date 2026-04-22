@@ -1,6 +1,7 @@
 import re
-import numpy as np
 from typing import List
+
+import numpy as np
 
 
 def extract_query_features(query: str, history: List[str] = None) -> np.ndarray:
