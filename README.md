@@ -8,6 +8,26 @@ RAG Sentinel combines Retrieval-Augmented Generation (RAG) with real-time query 
 
 ---
 
+## Dashboard UI
+
+![Dashboard](screenshots/dashboard.png)
+
+A fully interactive RAG pipeline monitoring dashboard — built with Google Stitch (Gemini 3.1 Pro), Space Grotesk + Inter, and Tailwind CSS.
+
+**Features:** Pipeline health strip · Total queries · Avg latency · Relevance score · Context precision · Hallucination rate · Cache hit · Volume & latency chart · Stage breakdown · Error donut · Live query stream
+
+```bash
+# Open the dashboard locally
+open index.html
+
+# Or serve it
+python3 -m http.server 8081
+```
+
+> `index.html` — Stitch-generated UI &nbsp;|&nbsp; `index-chartjs.html` — Chart.js version
+
+---
+
 ## Architecture
 
 ![System Architecture](screenshots/architecture.png)

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic RAG - Observatory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdcbf",
+                        "on-surface-variant": "#bcc9cd",
+                        "on-error": "#690005",
+                        "inverse-primary": "#00687a",
+                        "on-primary": "#003640",
+                        "surface-bright": "#353943",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "inverse-surface": "#dfe2ef",
+                        "secondary-fixed": "#e9ddff",
+                        "tertiary-fixed-dim": "#ffb873",
+                        "on-tertiary-fixed-variant": "#6a3b00",
+                        "surface": "#0f131c",
+                        "secondary-container": "#571bc1",
+                        "on-tertiary": "#4b2800",
+                        "surface-container-lowest": "#0a0e17",
+                        "outline-variant": "#3d494c",
+                        "primary": "#4cd7f6",
+                        "on-secondary": "#3c0091",
+                        "surface-container-high": "#262a34",
+                        "on-primary-fixed": "#001f26",
+                        "surface-container": "#1c2029",
+                        "on-tertiary-container": "#5b3200",
+                        "inverse-on-surface": "#2c303a",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "tertiary-container": "#e89337",
+                        "on-secondary-container": "#c4abff",
+                        "on-primary-fixed-variant": "#004e5c",
+                        "on-primary-container": "#00424f",
+                        "tertiary": "#ffb873",
+                        "on-tertiary-fixed": "#2d1600",
+                        "surface-dim": "#0f131c",
+                        "primary-fixed-dim": "#4cd7f6",
+                        "primary-container": "#06b6d4",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181b25",
+                        "outline": "#869397",
+                        "on-surface": "#dfe2ef",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#31353f",
+                        "secondary": "#d0bcff",
+                        "on-secondary-fixed": "#23005c",
+                        "background": "#0f131c",
+                        "error": "#ffb4ab",
+                        "on-background": "#dfe2ef",
+                        "primary-fixed": "#acedff",
+                        "surface-variant": "#31353f",
+                        "surface-tint": "#4cd7f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .pulse-primary {
+            box-shadow: 0 0 0 0 rgba(76, 215, 246, 0.7);
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 215, 246, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(76, 215, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 215, 246, 0); }
+        }
+        .ghost-border {
+            border: 1px solid rgba(61, 73, 76, 0.15); /* outline-variant at 15% */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen flex selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (Shared Component) -->
+<nav class="fixed left-0 top-0 h-full flex flex-col bg-[#181b25] dark:bg-slate-900 w-64 border-r-0 font-['Space_Grotesk'] tracking-tight z-50">
+<!-- Brand -->
+<div class="h-16 flex items-center px-6">
+<span class="text-xl font-bold text-cyan-400 tracking-wider">Kinetic RAG</span>
+<div class="ml-2 px-2 py-0.5 rounded-full bg-surface-container-highest text-xs text-on-surface-variant font-body">v2.4</div>
+</div>
+<!-- CTA -->
+<div class="px-4 py-4">
+<button class="w-full py-2.5 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-semibold text-sm shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:opacity-90 transition-opacity">
+                New Pipeline
+            </button>
+</div>
+<!-- Primary Tabs -->
+<div class="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+<a class="flex items-center px-3 py-2.5 rounded-lg text-cyan-400 font-bold bg-cyan-400/10 shadow-[0_0_15px_rgba(6,182,212,0.3)] border-r-2 border-cyan-400 scale-[0.98]" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+<span class="text-sm">Observatory</span>
+</a>
+<a class="flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">account_tree</span>
+<span class="text-sm">Pipelines</span>
+</a>
+<a class="flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">database</span>
+<span class="text-sm">Data Sources</span>
+</a>
+<a class="flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">settings_input_component</span>
+<span class="text-sm">Embeddings</span>
+</a>
+<a class="flex items-center px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">terminal</span>
+<span class="text-sm">System Logs</span>
+</a>
+</div>
+<!-- Footer Tabs -->
+<div class="px-3 py-4 mt-auto space-y-1 border-t border-surface-container-highest/30">
+<a class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">help</span>
+<span class="text-sm">Support</span>
+</a>
+<a class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<!-- User Profile -->
+<div class="mt-4 px-3 flex items-center">
+<div class="h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close up portrait of a professional man in a dark environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTs_oBpvITEdcIyYyIJh66LDMleUJKE5RNaiYia1dODrQImUTvEzNVDcGUQuYAN8Eb1auxoyZWo3b8d7UYSn1RGQwPE7QxDjhF1bvz9COd57LeTiDPI0vCogAugQA4_lzcB6SXaAjm9hf7hl2KuiOs7Ol3xcBHNHOz9Z8Jc8HLHRAWYULtDSrKmBDDbQNt0IR9L11sbwsg6cKTdPewSQFQtCewIYUpy993IZSuDyxauhaMdJSkbq1tK1Xcn67gDby6akBfFkvAAec"/>
+</div>
+<div class="ml-3">
+<div class="text-xs text-on-surface font-semibold">Admin</div>
+<div class="text-[10px] text-on-surface-variant font-mono">ID: 884-X</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#0f131c]/70 backdrop-blur-xl font-['Space_Grotesk'] text-sm uppercase tracking-widest">
+<!-- Navigation Links -->
+<div class="flex space-x-8">
+<a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 opacity-80 transition-all" href="#">Health</a>
+<a class="text-slate-400 hover:text-cyan-300 transition-all" href="#">Latency</a>
+<a class="text-slate-400 hover:text-cyan-300 transition-all" href="#">Cost</a>
+<a class="text-slate-400 hover:text-cyan-300 transition-all" href="#">Accuracy</a>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center space-x-4 text-slate-400">
+<button class="hover:text-cyan-300 transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-error"></span>
+</button>
+<button class="hover:text-cyan-300 transition-colors">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-8 w-full max-w-[1600px] mx-auto space-y-6">
+<!-- Header & Status Strip -->
+<header class="flex justify-between items-end mb-8">
+<div>
+<h1 class="font-headline text-3xl font-bold text-on-surface tracking-tight">RAG-Sentinel Active</h1>
+<p class="text-sm text-on-surface-variant mt-1 font-mono">PIPELINE ID: <span class="text-primary">PRD-ENG-99</span></p>
+</div>
+<!-- Health Strip (Tonal Layering) -->
+<div class="flex items-center bg-surface-container-low rounded-xl p-2 px-4 space-x-6">
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-primary pulse-primary"></span>
+<span class="text-xs font-mono text-on-surface-variant">API Gateway</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-primary pulse-primary"></span>
+<span class="text-xs font-mono text-on-surface-variant">Auth Layer</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-tertiary"></span>
+<span class="text-xs font-mono text-on-surface-variant">Vector DB</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-primary pulse-primary"></span>
+<span class="text-xs font-mono text-on-surface-variant">Embedder</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-error"></span>
+<span class="text-xs font-mono text-on-surface-variant">LLM Engine</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 rounded-full bg-primary pulse-primary"></span>
+<span class="text-xs font-mono text-on-surface-variant">Cache</span>
+</div>
+</div>
+</header>
+<!-- KPI Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-surface-container-low to-surface-container opacity-50"></div>
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider relative z-10">Total Queries</span>
+<div class="flex items-baseline space-x-2 relative z-10">
+<span class="font-headline text-3xl font-bold text-on-surface font-mono">48,291</span>
+<span class="text-xs text-primary font-mono">+12%</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden">
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider">Avg Latency</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-headline text-3xl font-bold text-on-surface font-mono">184<span class="text-lg text-on-surface-variant ml-1">ms</span></span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden border-b-2 border-primary">
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider">Relevance</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-headline text-3xl font-bold text-primary font-mono">0.847</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden">
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider">Context Prec.</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-headline text-3xl font-bold text-on-surface font-mono">79.4<span class="text-lg text-on-surface-variant ml-1">%</span></span>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden border-b-2 border-error">
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider text-error">Hallucination</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-headline text-3xl font-bold text-error font-mono">2.1<span class="text-lg text-error/70 ml-1">%</span></span>
+<span class="material-symbols-outlined text-error text-sm">trending_up</span>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col justify-between h-28 relative overflow-hidden">
+<span class="text-xs text-on-surface-variant font-medium uppercase tracking-wider">Cache Hit</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-headline text-3xl font-bold text-on-surface font-mono">61.8<span class="text-lg text-on-surface-variant ml-1">%</span></span>
+</div>
+</div>
+</div>
+<!-- Main Chart Section (Asymmetric Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Large Chart Panel -->
+<div class="lg:col-span-2 bg-surface-container-low rounded-xl p-6 relative">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline text-lg font-semibold text-on-surface">Volume &amp; Latency <span class="text-xs text-on-surface-variant ml-2 font-mono">p50/p95/p99</span></h2>
+<button class="text-xs text-primary font-mono ghost-border px-2 py-1 rounded">24H RANGE</button>
+</div>
+<!-- Abstract Representation of Chart -->
+<div class="h-64 flex items-end justify-between space-x-1 relative">
+<!-- Overlay lines (p50, p95, p99) -->
+<div class="absolute inset-0 pointer-events-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q25,75 50,85 T100,70" fill="none" opacity="0.8" stroke="#4cd7f6" stroke-width="0.5"></path>
+<path d="M0,50 Q25,60 50,40 T100,45" fill="none" opacity="0.6" stroke="#ffb873" stroke-width="0.5"></path>
+<path d="M0,30 Q25,20 50,35 T100,20" fill="none" opacity="0.6" stroke="#ffb4ab" stroke-width="0.5"></path>
+</svg>
+</div>
+<!-- Bars -->
+<div class="w-full bg-surface-container-lowest/50 h-[30%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-surface-container-lowest/50 h-[45%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-surface-container-lowest/50 h-[20%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-surface-container-lowest/50 h-[60%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-primary/20 h-[85%] rounded-t-sm border-t-2 border-primary"></div> <!-- Highlighted spike -->
+<div class="w-full bg-surface-container-lowest/50 h-[50%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-surface-container-lowest/50 h-[40%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+<div class="w-full bg-surface-container-lowest/50 h-[35%] rounded-t-sm hover:bg-surface-container transition-colors"></div>
+</div>
+<!-- X-Axis -->
+<div class="flex justify-between mt-2 text-[10px] text-on-surface-variant font-mono">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>NOW</span>
+</div>
+</div>
+<!-- Secondary Panel -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col">
+<h2 class="font-headline text-lg font-semibold text-on-surface mb-6">Stage Latency</h2>
+<div class="flex-1 space-y-4">
+<!-- Stage 1 -->
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-on-surface-variant">Embedding Gen</span>
+<span class="text-on-surface font-mono">45ms</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[25%]"></div>
+</div>
+</div>
+<!-- Stage 2 -->
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-on-surface-variant">Vector Search</span>
+<span class="text-on-surface font-mono">82ms</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[45%]"></div>
+</div>
+</div>
+<!-- Stage 3 -->
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-on-surface-variant text-error">LLM Generation</span>
+<span class="text-error font-mono">890ms</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[90%]"></div>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-surface-container-highest/30">
+<h3 class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-3">Error Breakdown</h3>
+<div class="flex items-center space-x-4">
+<!-- Abstract Donut -->
+<div class="w-16 h-16 rounded-full border-4 border-surface-container-lowest relative flex items-center justify-center">
+<div class="absolute inset-[-4px] rounded-full border-4 border-error" style="clip-path: polygon(50% 50%, 100% 0, 100% 30%, 50% 50%);"></div>
+<div class="absolute inset-[-4px] rounded-full border-4 border-tertiary" style="clip-path: polygon(50% 50%, 100% 30%, 100% 100%, 0 100%, 0 50%, 50% 50%);"></div>
+<span class="text-xs font-mono text-on-surface">14</span>
+</div>
+<div class="text-xs space-y-1">
+<div class="flex items-center"><span class="w-2 h-2 rounded bg-error mr-2"></span><span class="text-on-surface-variant">Token Limit (8)</span></div>
+<div class="flex items-center"><span class="w-2 h-2 rounded bg-tertiary mr-2"></span><span class="text-on-surface-variant">Timeout (6)</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Query Logs Table -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="p-4 flex justify-between items-center border-b border-surface-container-highest/30">
+<h2 class="font-headline text-lg font-semibold text-on-surface">Live Query Stream</h2>
+<div class="flex items-center space-x-2">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+<span class="text-xs text-on-surface-variant uppercase tracking-wider">Live</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead class="bg-surface-container-lowest/50 text-xs text-on-surface-variant uppercase font-mono border-b border-surface-container-highest/30">
+<tr>
+<th class="px-6 py-3 font-medium">Timestamp</th>
+<th class="px-6 py-3 font-medium">Trace ID</th>
+<th class="px-6 py-3 font-medium">Status</th>
+<th class="px-6 py-3 font-medium">Latency</th>
+<th class="px-6 py-3 font-medium">Rel. Score</th>
+</tr>
+</thead>
+<tbody class="font-mono divide-y divide-surface-container-highest/10">
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="px-6 py-3 text-on-surface-variant">14:02:11.402</td>
+<td class="px-6 py-3 text-on-surface">trc_994a21...</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary">
+                                    SUCCESS
+                                </span>
+</td>
+<td class="px-6 py-3 text-on-surface">142ms</td>
+<td class="px-6 py-3 text-primary">0.92</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="px-6 py-3 text-on-surface-variant">14:02:10.891</td>
+<td class="px-6 py-3 text-on-surface">trc_882b4c...</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-tertiary/10 text-tertiary">
+                                    DEGRADED
+                                </span>
+</td>
+<td class="px-6 py-3 text-tertiary">845ms</td>
+<td class="px-6 py-3 text-on-surface">0.64</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors bg-error/5">
+<td class="px-6 py-3 text-on-surface-variant">14:02:09.110</td>
+<td class="px-6 py-3 text-on-surface">trc_771x9z...</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-error/15 text-error">
+                                    HALTED
+                                </span>
+</td>
+<td class="px-6 py-3 text-error">Timeout</td>
+<td class="px-6 py-3 text-on-surface-variant">N/A</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="px-6 py-3 text-on-surface-variant">14:02:05.332</td>
+<td class="px-6 py-3 text-on-surface">trc_554d11...</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary">
+                                    SUCCESS
+                                </span>
+</td>
+<td class="px-6 py-3 text-on-surface">118ms</td>
+<td class="px-6 py-3 text-on-surface">0.88</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</body></html>
