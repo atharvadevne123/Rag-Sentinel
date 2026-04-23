@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG-Sentinel — Pipeline Monitor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo">
+    <span class="logo-icon">⬡</span>
+    <span class="logo-text">RAG<span class="accent">Sentinel</span></span>
+  </div>
+  <nav class="nav">
+    <a href="#" class="nav-item active">
+      <span class="nav-icon">◈</span> Overview
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">↗</span> Query Inspector
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">⊞</span> Retrieval Analysis
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">⌘</span> Chunk Explorer
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">⬧</span> Embedding Store
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">⚠</span> Alerts
+      <span class="badge-count">3</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">⚙</span> Configuration
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="pipeline-status">
+      <span class="dot healthy"></span>
+      <span>Pipeline Healthy</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title">Pipeline Monitor</h1>
+      <span class="breadcrumb">Real-time · Production</span>
+    </div>
+    <div class="topbar-right">
+      <div class="env-selector">
+        <span class="dot healthy"></span> Production
+        <span class="chevron">▾</span>
+      </div>
+      <div class="date-range">Last 24 hours</div>
+      <button class="btn-danger">Run Diagnostics</button>
+      <div class="avatar">AD</div>
+    </div>
+  </header>
+
+  <!-- System Health Bar -->
+  <div class="health-bar">
+    <div class="health-item">
+      <span class="dot healthy"></span>
+      <span class="h-label">Embedder</span>
+      <span class="h-val green">98.2% uptime</span>
+    </div>
+    <div class="sep"></div>
+    <div class="health-item">
+      <span class="dot healthy"></span>
+      <span class="h-label">Vector DB</span>
+      <span class="h-val green">99.9% uptime</span>
+    </div>
+    <div class="sep"></div>
+    <div class="health-item">
+      <span class="dot warning"></span>
+      <span class="h-label">Retriever</span>
+      <span class="h-val yellow">Elevated latency</span>
+    </div>
+    <div class="sep"></div>
+    <div class="health-item">
+      <span class="dot healthy"></span>
+      <span class="h-label">LLM Gateway</span>
+      <span class="h-val green">Nominal</span>
+    </div>
+    <div class="sep"></div>
+    <div class="health-item">
+      <span class="dot healthy"></span>
+      <span class="h-label">Re-ranker</span>
+      <span class="h-val green">Active</span>
+    </div>
+    <div class="sep"></div>
+    <div class="health-item">
+      <span class="dot error"></span>
+      <span class="h-label">Cache Layer</span>
+      <span class="h-val red">Miss rate spike</span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <section class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Queries (24h)</div>
+      <div class="kpi-value">48,291</div>
+      <div class="kpi-delta positive">+14.3% vs yesterday</div>
+      <div class="kpi-sparkline"><canvas id="spark1"></canvas></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg Retrieval Latency</div>
+      <div class="kpi-value">184ms</div>
+      <div class="kpi-delta negative">+22ms vs baseline</div>
+      <div class="kpi-sparkline"><canvas id="spark2"></canvas></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Relevance Score</div>
+      <div class="kpi-value">0.847</div>
+      <div class="kpi-delta positive">+0.012 vs last week</div>
+      <div class="kpi-sparkline"><canvas id="spark3"></canvas></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Context Precision</div>
+      <div class="kpi-value">79.4%</div>
+      <div class="kpi-delta positive">+1.8 pts WoW</div>
+      <div class="kpi-sparkline"><canvas id="spark4"></canvas></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Hallucination Rate</div>
+      <div class="kpi-value">2.1%</div>
+      <div class="kpi-delta positive">-0.4% vs baseline</div>
+      <div class="kpi-sparkline"><canvas id="spark5"></canvas></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Cache Hit Rate</div>
+      <div class="kpi-value">61.8%</div>
+      <div class="kpi-delta negative">-8.2% last hour</div>
+      <div class="kpi-sparkline"><canvas id="spark6"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Charts Row 1 -->
+  <section class="charts-row">
+    <!-- Query Volume -->
+    <div class="chart-card large">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Query Volume &amp; Latency</h3>
+          <span class="chart-sub">Requests per hour, p50/p95/p99 latency</span>
+        </div>
+        <div class="chart-controls">
+          <button class="tab active">1H</button>
+          <button class="tab">6H</button>
+          <button class="tab">24H</button>
+        </div>
+      </div>
+      <canvas id="queryChart"></canvas>
+    </div>
+
+    <!-- Retrieval Score Distribution -->
+    <div class="chart-card medium">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Relevance Score Distribution</h3>
+          <span class="chart-sub">Query relevance spread</span>
+        </div>
+      </div>
+      <canvas id="scoreChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Charts Row 2 -->
+  <section class="charts-row">
+    <!-- Chunk Retrieval Count -->
+    <div class="chart-card medium">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Top Retrieved Documents</h3>
+          <span class="chart-sub">By retrieval count (24h)</span>
+        </div>
+      </div>
+      <canvas id="docsChart"></canvas>
+    </div>
+
+    <!-- Latency Breakdown -->
+    <div class="chart-card medium">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Pipeline Stage Latency</h3>
+          <span class="chart-sub">Average ms per stage</span>
+        </div>
+      </div>
+      <canvas id="latencyBreakdown"></canvas>
+    </div>
+
+    <!-- Failure Types -->
+    <div class="chart-card small">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Error Classification</h3>
+          <span class="chart-sub">Last 24h</span>
+        </div>
+      </div>
+      <canvas id="errorChart"></canvas>
+      <div id="errorLegend" class="donut-legend"></div>
+    </div>
+  </section>
+
+  <!-- Query Log Table -->
+  <section class="table-section">
+    <div class="table-header">
+      <h3 class="chart-title">Recent Query Log</h3>
+      <div class="table-actions">
+        <button class="tab active">All</button>
+        <button class="tab">Failed</button>
+        <button class="tab">Slow</button>
+        <button class="btn-ghost">Export</button>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Query</th>
+          <th>Chunks Retrieved</th>
+          <th>Relevance Score</th>
+          <th>Latency</th>
+          <th>LLM Tokens</th>
+          <th>Status</th>
+          <th>Trace</th>
+        </tr>
+      </thead>
+      <tbody id="queryTableBody"></tbody>
+    </table>
+  </section>
+
+</main>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
