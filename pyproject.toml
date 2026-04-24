@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "rag-sentinel"
+version = "1.0.0"
+description = "Retrieval-Augmented Generation pipeline with monitoring"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "atharvadevne123", email = "devneatharva@gmail.com"}]
+
+[tool.setuptools.packages.find]
+where = ["."]
