@@ -1,3 +1,5 @@
+![Docker](https://github.com/atharvadevne123/Rag-Sentinel/actions/workflows/docker-publish.yml/badge.svg) ![Python Package](https://github.com/atharvadevne123/Rag-Sentinel/actions/workflows/python-publish.yml/badge.svg) ![Bump Version](https://github.com/atharvadevne123/Rag-Sentinel/actions/workflows/bump-version.yml/badge.svg)
+
 # RAG Sentinel
 
 **RAG-powered document intelligence with ML anomaly detection and drift monitoring.**
