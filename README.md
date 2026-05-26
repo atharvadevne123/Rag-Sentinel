@@ -235,3 +235,42 @@ The API will be available at `http://localhost:8000` and Swagger docs at `http:/
   "filename": "intro_to_ml.txt"
 }
 ```
+
+---
+
+## Testing
+
+```bash
+# Install test dependencies
+pip install pytest pytest-asyncio httpx
+
+# Run all tests
+pytest tests/ -v --tb=short
+
+# Or via Make
+make test
+```
+
+The test suite has 104+ tests across 9 modules covering:
+- API endpoints (happy path + edge cases)
+- Model training, cross-validation, and prediction
+- Feature engineering (parametrized)
+- Drift monitoring and KS-test
+- RAG index, ingestion, and retrieval
+- Airflow pipeline functions
+
+---
+
+## Configuration
+
+Copy `.env.example` to `.env` and adjust:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `sqlite:///./rag_sentinel.db` | SQLAlchemy connection string |
+| `MODEL_PATH` | `model.joblib` | Path to persisted model bundle |
+| `METRICS_PATH` | `metrics.json` | Path to training metrics JSON |
+| `FAISS_INDEX_PATH` | `rag_index.faiss` | Path to FAISS index file |
+| `CHUNK_SIZE` | `128` | Words per document chunk |
+| `CHUNK_OVERLAP` | `16` | Overlapping words between chunks |
+| `LOG_LEVEL` | `INFO` | Python logging level |
