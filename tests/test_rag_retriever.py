@@ -73,3 +73,20 @@ def test_retrieve_top_k_respected():
     ingest_document(text, "long_doc")
     _, sources = retrieve_and_answer("word", top_k=1)
     assert len(sources) <= 1
+
+
+def test_retrieve_no_results_returns_fallback():
+    idx = SentinelIndex()
+    text = "completely unrelated content " * 5
+    vecs = idx.embed([text])
+    idx.add(vecs, [text], "fallback_doc")
+    from rag.index import _index_instance
+    # Replace the singleton to inject our index
+    import rag.index
+    rag.index._index_instance = idx
+
+    answer, sources = retrieve_and_answer("totally different topic", top_k=3)
+    assert isinstance(answer, str)
+    assert isinstance(sources, list)
+
+    reset_index()
