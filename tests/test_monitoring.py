@@ -101,3 +101,20 @@ def test_get_system_metrics_zero_counts(db_session):
     metrics = get_system_metrics(db_session)
     assert metrics["anomaly_rate"] >= 0.0
     assert metrics["recent_1h_count"] >= 0
+
+
+def test_log_drift_false_detection(db_session):
+    drift = {"ks_statistic": 0.05, "p_value": 0.8, "drift_detected": False}
+    record = log_drift(db_session, drift, sample_size=200)
+    assert record.drift_detected is False
+    assert record.ks_statistic == 0.05
+
+
+def test_compute_drift_returns_all_keys():
+    import numpy as np
+    ref = list(np.random.default_rng(99).uniform(0, 1, 30))
+    cur = list(np.random.default_rng(100).uniform(0, 1, 30))
+    result = compute_drift(ref, cur)
+    assert "ks_statistic" in result
+    assert "p_value" in result
+    assert "drift_detected" in result
