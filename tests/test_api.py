@@ -151,3 +151,11 @@ def test_ingest_short_text_rejected(client):
 def test_health_model_loaded(client):
     resp = client.get("/health")
     assert resp.json()["model_loaded"] is True
+
+
+def test_health_includes_database_status(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "database_ok" in data
+    assert isinstance(data["database_ok"], bool)
