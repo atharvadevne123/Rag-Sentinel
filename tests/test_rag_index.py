@@ -88,3 +88,22 @@ def test_search_score_ordering():
     results = idx.search(q_vec, top_k=3)
     scores = [r[2] for r in results]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_add_multiple_docs():
+    idx = SentinelIndex()
+    for i in range(3):
+        vecs = idx.embed([f"document chunk {i} about topic {i}"])
+        idx.add(vecs, [f"chunk {i}"], f"doc_{i}")
+    assert len(idx) == 3
+
+
+def test_search_returns_correct_doc_id():
+    idx = SentinelIndex()
+    chunks = ["machine learning guide", "cooking recipe book"]
+    vecs = idx.embed(chunks)
+    idx.add(vecs[:1], [chunks[0]], "ml_doc")
+    idx.add(vecs[1:], [chunks[1]], "cook_doc")
+    q_vec = idx.embed(["machine learning"])[0]
+    results = idx.search(q_vec, top_k=1)
+    assert results[0][1] == "ml_doc"
