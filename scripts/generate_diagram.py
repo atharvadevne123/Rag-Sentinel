@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 os.makedirs("screenshots", exist_ok=True)
 
 
-def draw_box(ax, x, y, w, h, label, color, fontsize=9, text_color="white"):
+def draw_box(ax, x, y, w, h, label, color, fontsize=9, text_color="white"):  # noqa: PLR0913
+    """Draw a rounded rectangle with centred label text on the given axes."""
     box = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
                          linewidth=1.5, edgecolor="white", facecolor=color, zorder=3)
     ax.add_patch(box)
@@ -21,6 +22,7 @@ def draw_box(ax, x, y, w, h, label, color, fontsize=9, text_color="white"):
 
 
 def draw_arrow(ax, x1, y1, x2, y2, color="#cccccc"):
+    """Draw an annotated arrow from (x1, y1) to (x2, y2) on the given axes."""
     ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
                 arrowprops=dict(arrowstyle="->", color=color, lw=1.5), zorder=2)
 
