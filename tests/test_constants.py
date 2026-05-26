@@ -50,3 +50,15 @@ def test_app_version_format():
     parts = APP_VERSION.split(".")
     assert len(parts) == 3
     assert all(p.isdigit() for p in parts)
+
+
+def test_app_name_is_string():
+    assert isinstance(APP_NAME, str)
+
+
+def test_drift_p_value_is_float():
+    assert isinstance(DRIFT_P_VALUE_THRESHOLD, float)
+
+
+def test_classifier_threshold_less_than_half():
+    assert ANOMALY_CLASSIFIER_THRESHOLD <= 0.5
