@@ -96,3 +96,28 @@ def test_predict_returns_float_scores(trained_model):
     assert isinstance(result["anomaly_score"], float)
     assert isinstance(result["classifier_prob"], float)
     assert isinstance(result["isolation_score"], float)
+
+
+def test_predict_xss_query(trained_model):
+    from app.features import extract_query_features
+    bundle, _ = trained_model
+    xss = "<script>alert('xss')</script>"
+    features = extract_query_features(xss, [])
+    result = predict_anomaly(bundle, features)
+    assert "is_anomaly" in result
+
+
+def test_train_model_writes_metrics_file(tmp_path, monkeypatch):
+    import os
+    metrics_path = str(tmp_path / "metrics.json")
+    monkeypatch.setenv("METRICS_PATH", metrics_path)
+    monkeypatch.setenv("MODEL_PATH", str(tmp_path / "model.joblib"))
+    from app.features import generate_training_corpus
+    from app.model import train_model
+    X, y = generate_training_corpus(n_normal=40, n_anomaly=10, seed=5)
+    _, metrics = train_model(X, y)
+    assert os.path.exists(metrics_path)
+    import json
+    with open(metrics_path) as f:
+        saved = json.load(f)
+    assert saved["auc_mean"] == metrics["auc_mean"]
