@@ -1,8 +1,9 @@
+import logging
 import time
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import List, Optional
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -17,9 +18,13 @@ from app.monitoring import (
     log_prediction,
 )
 
-_model_bundle = {}
-_query_history: list = []
-_reference_scores: list = []
+logger = logging.getLogger(__name__)
+
+_model_bundle: dict = {}
+_query_history: List[str] = []
+_reference_scores: List[float] = []
+
+APP_VERSION = "1.0.0"
 
 
 @asynccontextmanager
@@ -27,21 +32,45 @@ async def lifespan(app: FastAPI):
     init_db()
     bundle = load_model()
     _model_bundle.update(bundle)
+    logger.info("RAG Sentinel started — model loaded, DB initialised.")
     yield
+    logger.info("RAG Sentinel shutting down.")
 
 
 app = FastAPI(
     title="RAG Sentinel",
     description="RAG-powered document intelligence with ML anomaly detection and drift monitoring",
-    version="1.0.0",
+    version=APP_VERSION,
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def request_timing_middleware(request: Request, call_next) -> Response:
+    """Log method, path, status code, and elapsed time for every request."""
+    t0 = time.perf_counter()
+    response: Response = await call_next(request)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    logger.info(
+        "%s %s -> %d  (%.1f ms)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        elapsed_ms,
+    )
+    return response
 
 
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=2000)
     use_rag: bool = Field(default=True)
     top_k: int = Field(default=3, ge=1, le=10)
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{"query": "What is machine learning?", "use_rag": True, "top_k": 3}]
+        }
+    }
 
 
 class QueryResponse(BaseModel):
@@ -51,14 +80,20 @@ class QueryResponse(BaseModel):
     classifier_prob: float
     isolation_score: float
     rag_answer: Optional[str] = None
-    rag_sources: Optional[list] = None
+    rag_sources: Optional[List] = None
     response_time_ms: float
 
 
 class IngestRequest(BaseModel):
-    text: str = Field(..., min_length=10)
+    text: str = Field(..., min_length=10, max_length=100_000)
     doc_id: str = Field(..., min_length=1, max_length=64)
     filename: str = Field(default="manual_input")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{"text": "Machine learning is a branch of AI.", "doc_id": "doc_001"}]
+        }
+    }
 
 
 class RetrainResponse(BaseModel):
@@ -68,31 +103,57 @@ class RetrainResponse(BaseModel):
     n_features: int
 
 
+def _get_rag_context(query: str, top_k: int) -> tuple:
+    """Attempt RAG retrieval; return (answer, sources) or fallback strings."""
+    try:
+        from rag.retriever import retrieve_and_answer
+        return retrieve_and_answer(query, top_k=top_k)
+    except Exception as exc:
+        logger.warning("RAG retrieval failed: %s", exc)
+        return "RAG index not yet populated. Ingest documents first.", []
+
+
 @app.get("/health")
-def health():
+def health() -> dict:
+    """Return service liveness and model-loaded status."""
     return {
         "status": "ok",
         "model_loaded": len(_model_bundle) > 0,
-        "version": "1.0.0",
+        "version": APP_VERSION,
     }
 
 
+@app.get("/version")
+def version() -> dict:
+    """Return the current application version string."""
+    return {"version": APP_VERSION}
+
+
 @app.post("/predict", response_model=QueryResponse)
-def predict(req: QueryRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def predict(
+    req: QueryRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> QueryResponse:
+    """Score a query for anomaly patterns and optionally retrieve a RAG answer.
+
+    Args:
+        req: Query request payload.
+        background_tasks: FastAPI background task queue.
+        db: Injected database session.
+
+    Returns:
+        QueryResponse with anomaly scores and optional RAG answer.
+    """
     t0 = time.time()
 
     features = extract_query_features(req.query, _query_history[-10:])
     result = predict_anomaly(_model_bundle, features)
 
-    rag_answer = None
-    rag_sources = None
+    rag_answer: Optional[str] = None
+    rag_sources: Optional[List] = None
     if req.use_rag and not result["is_anomaly"]:
-        try:
-            from rag.retriever import retrieve_and_answer
-            rag_answer, rag_sources = retrieve_and_answer(req.query, top_k=req.top_k)
-        except Exception:
-            rag_answer = "RAG index not yet populated. Ingest documents first."
-            rag_sources = []
+        rag_answer, rag_sources = _get_rag_context(req.query, req.top_k)
 
     elapsed_ms = (time.time() - t0) * 1000
     _query_history.append(req.query)
@@ -120,13 +181,24 @@ def predict(req: QueryRequest, background_tasks: BackgroundTasks, db: Session = 
 
 
 @app.post("/ingest")
-def ingest(req: IngestRequest, db: Session = Depends(get_db)):
+def ingest(req: IngestRequest, db: Session = Depends(get_db)) -> dict:
+    """Ingest a document into the RAG index and record it in the database.
+
+    Args:
+        req: Ingest request with text, doc_id, and filename.
+        db: Injected database session.
+
+    Returns:
+        Dict with status, doc_id, and chunk count.
+    """
     from app.database import DocumentIndex
     from rag.ingest import ingest_document
+
     try:
         chunk_count = ingest_document(req.text, req.doc_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ingestion failed: {e}")
+    except Exception as exc:
+        logger.error("Ingestion failed for doc_id=%s: %s", req.doc_id, exc)
+        raise HTTPException(status_code=500, detail=f"Ingestion failed: {exc}")
 
     existing = db.query(DocumentIndex).filter(DocumentIndex.doc_id == req.doc_id).first()
     if existing:
@@ -141,7 +213,8 @@ def ingest(req: IngestRequest, db: Session = Depends(get_db)):
 
 
 @app.get("/metrics")
-def metrics(db: Session = Depends(get_db)):
+def metrics(db: Session = Depends(get_db)) -> dict:
+    """Return system health metrics and optional drift detection results."""
     sys_metrics = get_system_metrics(db)
 
     recent = get_recent_scores(db, hours=24)
@@ -157,18 +230,27 @@ def metrics(db: Session = Depends(get_db)):
 
 
 @app.post("/retrain", response_model=RetrainResponse)
-def retrain(db: Session = Depends(get_db)):
+def retrain(db: Session = Depends(get_db)) -> RetrainResponse:
+    """Trigger an in-process model retrain using the latest 24-hour scores as reference.
+
+    Args:
+        db: Injected database session.
+
+    Returns:
+        RetrainResponse with new AUC metrics and feature count.
+    """
     current_scores = get_recent_scores(db, hours=24)
     _reference_scores.clear()
     _reference_scores.extend(current_scores)
 
-    bundle, metrics = train_model()
+    bundle, train_metrics = train_model()
     _model_bundle.clear()
     _model_bundle.update(bundle)
+    logger.info("Model retrained: AUC=%.4f ± %.4f", train_metrics["auc_mean"], train_metrics["auc_std"])
 
     return RetrainResponse(
         status="retrained",
-        auc_mean=metrics["auc_mean"],
-        auc_std=metrics["auc_std"],
-        n_features=metrics["n_features"],
+        auc_mean=train_metrics["auc_mean"],
+        auc_std=train_metrics["auc_std"],
+        n_features=train_metrics["n_features"],
     )
