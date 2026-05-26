@@ -118,3 +118,36 @@ def test_predict_sql_injection(client):
     assert resp.status_code == 200
     data = resp.json()
     assert "is_anomaly" in data
+
+
+def test_version_endpoint(client):
+    resp = client.get("/version")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "version" in data
+    assert data["version"] == "1.0.0"
+
+
+def test_predict_top_k_min(client):
+    resp = client.post("/predict", json={"query": "Explain transformers", "use_rag": False, "top_k": 1})
+    assert resp.status_code == 200
+
+
+def test_predict_top_k_max(client):
+    resp = client.post("/predict", json={"query": "Explain transformers", "use_rag": False, "top_k": 10})
+    assert resp.status_code == 200
+
+
+def test_predict_top_k_invalid_rejected(client):
+    resp = client.post("/predict", json={"query": "test", "use_rag": False, "top_k": 0})
+    assert resp.status_code == 422
+
+
+def test_ingest_short_text_rejected(client):
+    resp = client.post("/ingest", json={"text": "hi", "doc_id": "x"})
+    assert resp.status_code == 422
+
+
+def test_health_model_loaded(client):
+    resp = client.get("/health")
+    assert resp.json()["model_loaded"] is True
