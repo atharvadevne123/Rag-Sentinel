@@ -1,15 +1,27 @@
 import json
+import logging
 import os
-from datetime import datetime, timedelta
-from typing import List
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
 
 from app.database import DriftLog, PredictionLog
 
+logger = logging.getLogger(__name__)
+
 
 def compute_drift(reference: List[float], current: List[float]) -> dict:
+    """Run a two-sample KS test to detect score distribution drift.
+
+    Args:
+        reference: Baseline anomaly score sample.
+        current: Recent anomaly score sample.
+
+    Returns:
+        Dict with ks_statistic, p_value, and drift_detected flag.
+    """
     if len(reference) < 2 or len(current) < 2:
         return {"ks_statistic": 0.0, "p_value": 1.0, "drift_detected": False, "error": "insufficient_data"}
     stat, p = ks_2samp(reference, current)
@@ -20,8 +32,27 @@ def compute_drift(reference: List[float], current: List[float]) -> dict:
     }
 
 
-def log_prediction(db: Session, query: str, anomaly_score: float, is_anomaly: bool,
-                   rag_used: bool = False, response_time_ms: float = None) -> PredictionLog:
+def log_prediction(
+    db: Session,
+    query: str,
+    anomaly_score: float,
+    is_anomaly: bool,
+    rag_used: bool = False,
+    response_time_ms: Optional[float] = None,
+) -> PredictionLog:
+    """Persist a single prediction event to the database.
+
+    Args:
+        db: Active SQLAlchemy session.
+        query: Original query text.
+        anomaly_score: Ensemble anomaly score in [0, 1].
+        is_anomaly: Whether the ensemble flagged this as anomalous.
+        rag_used: Whether RAG retrieval was performed.
+        response_time_ms: End-to-end response latency in milliseconds.
+
+    Returns:
+        The persisted PredictionLog ORM instance.
+    """
     record = PredictionLog(
         query=query,
         anomaly_score=anomaly_score,
@@ -36,6 +67,16 @@ def log_prediction(db: Session, query: str, anomaly_score: float, is_anomaly: bo
 
 
 def log_drift(db: Session, drift_result: dict, sample_size: int) -> DriftLog:
+    """Persist a drift detection result to the database.
+
+    Args:
+        db: Active SQLAlchemy session.
+        drift_result: Output of compute_drift().
+        sample_size: Number of current-window samples used.
+
+    Returns:
+        The persisted DriftLog ORM instance.
+    """
     record = DriftLog(
         ks_statistic=drift_result["ks_statistic"],
         p_value=drift_result["p_value"],
@@ -49,22 +90,42 @@ def log_drift(db: Session, drift_result: dict, sample_size: int) -> DriftLog:
 
 
 def get_recent_scores(db: Session, hours: int = 24) -> List[float]:
-    since = datetime.utcnow() - timedelta(hours=hours)
+    """Query anomaly scores from the last N hours.
+
+    Args:
+        db: Active SQLAlchemy session.
+        hours: Lookback window in hours.
+
+    Returns:
+        List of anomaly score floats.
+    """
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
     rows = db.query(PredictionLog.anomaly_score).filter(PredictionLog.created_at >= since).all()
     return [r.anomaly_score for r in rows]
 
 
 def get_system_metrics(db: Session) -> dict:
+    """Aggregate system health and model metrics from the database.
+
+    Args:
+        db: Active SQLAlchemy session.
+
+    Returns:
+        Dict with prediction counts, anomaly rate, drift state, and model AUC.
+    """
     total = db.query(PredictionLog).count()
     anomalies = db.query(PredictionLog).filter(PredictionLog.is_anomaly).count()
     recent_scores = get_recent_scores(db, hours=1)
     last_drift = db.query(DriftLog).order_by(DriftLog.created_at.desc()).first()
 
     metrics_path = os.getenv("METRICS_PATH", "metrics.json")
-    model_metrics = {}
+    model_metrics: dict = {}
     if os.path.exists(metrics_path):
-        with open(metrics_path) as f:
-            model_metrics = json.load(f)
+        try:
+            with open(metrics_path) as f:
+                model_metrics = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Could not read metrics file %s: %s", metrics_path, exc)
 
     return {
         "total_predictions": total,
