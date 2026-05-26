@@ -65,3 +65,28 @@ def test_validate_model_returns_dict():
         assert "validation_passed" in result
     except ValueError:
         pass  # small test-only model may not pass all sanity checks
+
+
+def test_check_drift_returns_dict(tmp_path, monkeypatch):
+    import os
+    db_url = f"sqlite:///{tmp_path}/pipeline_test.db"
+    monkeypatch.setenv("DATABASE_URL", db_url)
+    ctx = _ctx()
+    result = check_drift(**ctx)
+    assert isinstance(result, dict)
+    assert "drift_detected" in result
+
+
+def test_retrain_if_needed_no_drift_not_sunday(monkeypatch):
+    import datetime
+
+    class FakeDatetime:
+        @staticmethod
+        def utcnow():
+            return datetime.datetime(2024, 1, 2)  # Tuesday
+
+    monkeypatch.setattr("pipelines.retrain_dag.datetime", FakeDatetime)
+    ctx = _ctx(drift=False)
+    ctx["task_instance"]._pushed["drift_detected"] = False
+    result = retrain_if_needed(**ctx)
+    assert result["retrained"] is False
