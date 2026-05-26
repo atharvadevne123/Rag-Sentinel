@@ -86,3 +86,26 @@ def test_metrics_reflects_predictions(integration_client):
     assert metrics_resp.status_code == 200
     data = metrics_resp.json()
     assert data["system"]["total_predictions"] >= 0
+
+
+def test_ingest_updates_existing_doc(integration_client):
+    integration_client.post("/ingest", json={
+        "text": "First version of the document about AI concepts and machine learning. " * 5,
+        "doc_id": "update_test_doc",
+        "filename": "v1.txt",
+    })
+    resp = integration_client.post("/ingest", json={
+        "text": "Updated version of the document about neural networks and deep learning. " * 5,
+        "doc_id": "update_test_doc",
+        "filename": "v2.txt",
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["doc_id"] == "update_test_doc"
+    assert data["chunks"] >= 1
+
+
+def test_version_consistent_with_health(integration_client):
+    health = integration_client.get("/health").json()
+    version = integration_client.get("/version").json()
+    assert health["version"] == version["version"]
