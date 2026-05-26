@@ -10,6 +10,11 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from app.constants import (
+    ANOMALY_CLASSIFIER_THRESHOLD,
+    ANOMALY_ENSEMBLE_CLASSIFIER_WEIGHT,
+    ANOMALY_ENSEMBLE_ISOLATION_WEIGHT,
+)
 from app.features import generate_training_corpus
 
 logger = logging.getLogger(__name__)
@@ -116,8 +121,11 @@ def predict_anomaly(model_bundle: dict, features: np.ndarray) -> dict:
     iso_score = float(iso.decision_function(feat_2d)[0])
     iso_label = int(iso.predict(feat_2d)[0])  # -1 = anomaly, 1 = normal
 
-    is_anomaly = bool(clf_prob > 0.5 or iso_label == -1)
-    ensemble_score = float(clf_prob * 0.6 + (1.0 - (iso_score + 0.5)) * 0.4)
+    is_anomaly = bool(clf_prob > ANOMALY_CLASSIFIER_THRESHOLD or iso_label == -1)
+    ensemble_score = float(
+        clf_prob * ANOMALY_ENSEMBLE_CLASSIFIER_WEIGHT
+        + (1.0 - (iso_score + 0.5)) * ANOMALY_ENSEMBLE_ISOLATION_WEIGHT
+    )
 
     return {
         "is_anomaly": is_anomaly,
