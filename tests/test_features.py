@@ -115,3 +115,21 @@ def test_extract_features_with_long_history():
     history = ["query " + str(i) for i in range(20)]
     features = extract_query_features("test query", history)
     assert features.shape == (15,)
+
+
+def test_punct_ratio_increases_with_punctuation():
+    few_punct = extract_query_features("Hello world how are you today")
+    many_punct = extract_query_features("Hello! World? How, are; you: today.")
+    assert many_punct[4] > few_punct[4]
+
+
+def test_upper_ratio_increases_with_caps():
+    lower = extract_query_features("what is machine learning")
+    upper = extract_query_features("WHAT IS MACHINE LEARNING")
+    assert upper[6] > lower[6]
+
+
+def test_digit_ratio_increases_with_digits():
+    no_digits = extract_query_features("what is machine learning")
+    with_digits = extract_query_features("123 456 789 what is 42 learning")
+    assert with_digits[5] > no_digits[5]
