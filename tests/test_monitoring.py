@@ -118,3 +118,9 @@ def test_compute_drift_returns_all_keys():
     assert "ks_statistic" in result
     assert "p_value" in result
     assert "drift_detected" in result
+
+
+def test_log_prediction_is_anomaly_true(db_session):
+    record = log_prediction(db_session, "injection query", 0.9, True)
+    assert record.is_anomaly is True
+    assert record.anomaly_score == 0.9

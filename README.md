@@ -288,3 +288,9 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before opening issues or p
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a full history of changes and version notes.
