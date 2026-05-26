@@ -74,3 +74,44 @@ def test_special_char_ratio_for_injection():
     normal = extract_query_features("What is deep learning?")
     injected = extract_query_features("SELECT {exec} (DROP) <script> [alert]")
     assert injected[7] > normal[7]
+
+
+import pytest
+
+
+@pytest.mark.parametrize("query,expected_idx,expected_nonzero", [
+    ("SELECT * FROM users", 13, True),
+    ("DROP TABLE admin", 13, True),
+    ("What is gradient descent?", 13, False),
+    ("UNION ALL SELECT password", 13, True),
+    ("Explain BERT embeddings", 13, False),
+])
+def test_sql_keyword_feature_parametrized(query, expected_idx, expected_nonzero):
+    features = extract_query_features(query)
+    if expected_nonzero:
+        assert features[expected_idx] > 0
+    else:
+        assert features[expected_idx] == 0
+
+
+@pytest.mark.parametrize("length", [1, 10, 100, 500, 2000])
+def test_char_len_feature_various_lengths(length):
+    query = "a" * length
+    features = extract_query_features(query)
+    assert features[0] == length
+
+
+def test_generate_corpus_balance():
+    X, y = generate_training_corpus(n_normal=60, n_anomaly=20, seed=7)
+    assert int(y.sum()) == 20
+    assert int((y == 0).sum()) == 60
+
+
+def test_feature_names_count():
+    assert len(FEATURE_NAMES) == 15
+
+
+def test_extract_features_with_long_history():
+    history = ["query " + str(i) for i in range(20)]
+    features = extract_query_features("test query", history)
+    assert features.shape == (15,)
