@@ -274,3 +274,17 @@ Copy `.env.example` to `.env` and adjust:
 | `CHUNK_SIZE` | `128` | Words per document chunk |
 | `CHUNK_OVERLAP` | `16` | Overlapping words between chunks |
 | `LOG_LEVEL` | `INFO` | Python logging level |
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, code style guide, and PR checklist.
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before opening issues or pull requests.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
