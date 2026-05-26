@@ -87,3 +87,26 @@ def test_get_db_yields_session():
         next(gen)
     except StopIteration:
         pass
+
+
+def test_prediction_log_default_rag_false(mem_session):
+    rec = PredictionLog(query="test", anomaly_score=0.1, is_anomaly=False)
+    mem_session.add(rec)
+    mem_session.commit()
+    assert rec.rag_context_used is False
+
+
+def test_drift_log_sample_size_stored(mem_session):
+    rec = DriftLog(ks_statistic=0.2, p_value=0.15, drift_detected=False, sample_size=75)
+    mem_session.add(rec)
+    mem_session.commit()
+    assert rec.sample_size == 75
+
+
+def test_multiple_prediction_logs_queryable(mem_session):
+    for i in range(5):
+        rec = PredictionLog(query=f"query {i}", anomaly_score=i * 0.1, is_anomaly=i % 2 == 0)
+        mem_session.add(rec)
+    mem_session.commit()
+    count = mem_session.query(PredictionLog).count()
+    assert count >= 5
