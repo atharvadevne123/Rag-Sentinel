@@ -159,3 +159,24 @@ def test_health_includes_database_status(client):
     data = resp.json()
     assert "database_ok" in data
     assert isinstance(data["database_ok"], bool)
+
+
+def test_predict_response_has_all_fields(client):
+    resp = client.post("/predict", json={"query": "What is deep learning?", "use_rag": False})
+    data = resp.json()
+    required = {"query", "is_anomaly", "anomaly_score", "classifier_prob", "isolation_score", "response_time_ms"}
+    assert required.issubset(data.keys())
+
+
+def test_retrain_returns_n_features_15(client):
+    resp = client.post("/retrain")
+    data = resp.json()
+    assert data["n_features"] == 15
+
+
+def test_ingest_returns_ingested_status(client):
+    resp = client.post("/ingest", json={
+        "text": "Transformer models revolutionised NLP with attention mechanisms. " * 5,
+        "doc_id": "transformer_doc",
+    })
+    assert resp.json()["status"] == "ingested"
