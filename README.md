@@ -202,3 +202,36 @@ docker-compose up --build
 ```
 
 The API will be available at `http://localhost:8000` and Swagger docs at `http://localhost:8000/docs`.
+
+---
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/health` | Liveness check — model loaded status |
+| `GET`  | `/version` | Current application version string |
+| `POST` | `/predict` | Score a query for anomaly patterns + optional RAG answer |
+| `POST` | `/ingest` | Add a document to the RAG index |
+| `GET`  | `/metrics` | System metrics, anomaly rate, and drift state |
+| `POST` | `/retrain` | Trigger in-process model retraining |
+
+### `/predict` Request Body
+
+```json
+{
+  "query": "What is machine learning?",
+  "use_rag": true,
+  "top_k": 3
+}
+```
+
+### `/ingest` Request Body
+
+```json
+{
+  "text": "Machine learning is a branch of AI...",
+  "doc_id": "my_document_001",
+  "filename": "intro_to_ml.txt"
+}
+```
