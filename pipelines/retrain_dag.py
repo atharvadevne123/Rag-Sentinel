@@ -148,7 +148,7 @@ def validate_model(**context: Any) -> Dict[str, Any]:
 
     test_cases = [
         ("What is machine learning?", False),
-        ("DROP TABLE users;--", True),
+        ("DROP TABLE users; SELECT * FROM admin WHERE 1=1 UNION ALL SELECT password--", True),
     ]
     passed = sum(
         1
