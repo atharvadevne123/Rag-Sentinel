@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from app.features import FEATURE_NAMES, extract_query_features, generate_training_corpus
 
@@ -76,7 +77,6 @@ def test_special_char_ratio_for_injection():
     assert injected[7] > normal[7]
 
 
-import pytest
 
 
 @pytest.mark.parametrize("query,expected_idx,expected_nonzero", [

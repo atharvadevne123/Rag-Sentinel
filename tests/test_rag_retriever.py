@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag.index import reset_index
+from rag.index import SentinelIndex, reset_index
 from rag.ingest import ingest_document
 from rag.retriever import _score_sentences, _synthesize_answer, retrieve_and_answer
 
@@ -80,7 +80,6 @@ def test_retrieve_no_results_returns_fallback():
     text = "completely unrelated content " * 5
     vecs = idx.embed([text])
     idx.add(vecs, [text], "fallback_doc")
-    from rag.index import _index_instance
     # Replace the singleton to inject our index
     import rag.index
     rag.index._index_instance = idx

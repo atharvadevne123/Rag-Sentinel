@@ -1,3 +1,5 @@
+import pytest
+
 from app.features import extract_query_features, generate_training_corpus
 from app.model import predict_anomaly, train_model
 
@@ -59,7 +61,6 @@ def test_isolation_forest_in_bundle(trained_model):
     assert isinstance(bundle["isolation_forest"], IsolationForest)
 
 
-import pytest
 
 
 @pytest.mark.parametrize("query,should_have_high_score", [
@@ -108,16 +109,17 @@ def test_predict_xss_query(trained_model):
 
 
 def test_train_model_writes_metrics_file(tmp_path, monkeypatch):
-    import os
-    metrics_path = str(tmp_path / "metrics.json")
-    monkeypatch.setenv("METRICS_PATH", metrics_path)
-    monkeypatch.setenv("MODEL_PATH", str(tmp_path / "model.joblib"))
-    from app.features import generate_training_corpus
-    from app.model import train_model
-    X, y = generate_training_corpus(n_normal=40, n_anomaly=10, seed=5)
-    _, metrics = train_model(X, y)
-    assert os.path.exists(metrics_path)
     import json
+    import os
+    import app.model as model_mod
+    metrics_path = str(tmp_path / "metrics.json")
+    model_path = str(tmp_path / "model.joblib")
+    monkeypatch.setattr(model_mod, "METRICS_PATH", metrics_path)
+    monkeypatch.setattr(model_mod, "MODEL_PATH", model_path)
+    from app.features import generate_training_corpus
+    X, y = generate_training_corpus(n_normal=40, n_anomaly=10, seed=5)
+    _, metrics = model_mod.train_model(X, y)
+    assert os.path.exists(metrics_path)
     with open(metrics_path) as f:
         saved = json.load(f)
     assert saved["auc_mean"] == metrics["auc_mean"]

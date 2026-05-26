@@ -1,3 +1,5 @@
+import pytest
+
 from app.monitoring import (
     compute_drift,
     get_recent_scores,
@@ -69,8 +71,6 @@ def test_compute_drift_ks_statistic_range():
     result = compute_drift(ref, cur)
     assert 0.0 <= result["ks_statistic"] <= 1.0
 
-
-import pytest
 
 
 @pytest.mark.parametrize("hours", [1, 6, 24, 72])
