@@ -181,3 +181,24 @@ rag-sentinel/
 ├── requirements.txt
 └── .env.example
 ```
+---
+
+## Quick Start
+
+```bash
+# 1. Clone and install
+git clone https://github.com/atharvadevne123/Rag-Sentinel.git
+cd Rag-Sentinel
+pip install -r requirements.txt
+
+# 2. Configure (copy defaults)
+cp .env.example .env
+
+# 3. Start the API
+uvicorn app.main:app --reload --port 8000
+
+# Or with Docker
+docker-compose up --build
+```
+
+The API will be available at `http://localhost:8000` and Swagger docs at `http://localhost:8000/docs`.
