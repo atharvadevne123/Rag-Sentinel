@@ -7,6 +7,7 @@ from typing import List, Optional
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
 
+from app.constants import DRIFT_MIN_SAMPLE_SIZE, DRIFT_P_VALUE_THRESHOLD
 from app.database import DriftLog, PredictionLog
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ def compute_drift(reference: List[float], current: List[float]) -> dict:
     return {
         "ks_statistic": round(float(stat), 4),
         "p_value": round(float(p), 4),
-        "drift_detected": bool(p < 0.05),
+        "drift_detected": bool(p < DRIFT_P_VALUE_THRESHOLD),
     }
 
 
