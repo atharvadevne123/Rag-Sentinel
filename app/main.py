@@ -114,11 +114,19 @@ def _get_rag_context(query: str, top_k: int) -> tuple:
 
 
 @app.get("/health")
-def health() -> dict:
-    """Return service liveness and model-loaded status."""
+def health(db: Session = Depends(get_db)) -> dict:
+    """Return service liveness, model-loaded status, and database connectivity."""
+    db_ok = False
+    try:
+        db.execute(__import__("sqlalchemy").text("SELECT 1"))
+        db_ok = True
+    except Exception as exc:
+        logger.warning("Database health check failed: %s", exc)
+
     return {
         "status": "ok",
         "model_loaded": len(_model_bundle) > 0,
+        "database_ok": db_ok,
         "version": APP_VERSION,
     }
 
