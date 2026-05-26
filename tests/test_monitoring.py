@@ -68,3 +68,36 @@ def test_compute_drift_ks_statistic_range():
     cur = list(np.random.default_rng(42).normal(5, 1, 100))
     result = compute_drift(ref, cur)
     assert 0.0 <= result["ks_statistic"] <= 1.0
+
+
+import pytest
+
+
+@pytest.mark.parametrize("hours", [1, 6, 24, 72])
+def test_get_recent_scores_different_windows(db_session, hours):
+    scores = get_recent_scores(db_session, hours=hours)
+    assert isinstance(scores, list)
+
+
+def test_log_prediction_default_rag_false(db_session):
+    record = log_prediction(db_session, "simple query", 0.1, False)
+    assert record.rag_context_used is False
+
+
+def test_log_prediction_with_response_time(db_session):
+    record = log_prediction(db_session, "timed query", 0.5, True, response_time_ms=123.45)
+    assert record.response_time_ms == pytest.approx(123.45)
+
+
+def test_compute_drift_symmetric_distributions():
+    import numpy as np
+    ref = list(np.random.default_rng(10).normal(0, 1, 200))
+    cur = list(np.random.default_rng(10).normal(0, 1, 200))
+    result = compute_drift(ref, cur)
+    assert result["p_value"] > 0.05
+
+
+def test_get_system_metrics_zero_counts(db_session):
+    metrics = get_system_metrics(db_session)
+    assert metrics["anomaly_rate"] >= 0.0
+    assert metrics["recent_1h_count"] >= 0
