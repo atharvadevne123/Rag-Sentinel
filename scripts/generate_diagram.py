@@ -1,8 +1,12 @@
+import logging
 import os
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 os.makedirs("screenshots", exist_ok=True)
 
@@ -108,4 +112,4 @@ ax.legend(handles=legend_patches, loc="lower right", fontsize=8,
 plt.tight_layout()
 plt.savefig("screenshots/architecture.png", dpi=150, bbox_inches="tight",
             facecolor=fig.get_facecolor())
-print("Architecture diagram saved to screenshots/architecture.png")
+logger.info("Architecture diagram saved to screenshots/architecture.png")
