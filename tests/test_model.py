@@ -57,3 +57,42 @@ def test_isolation_forest_in_bundle(trained_model):
     bundle, _ = trained_model
     from sklearn.ensemble import IsolationForest
     assert isinstance(bundle["isolation_forest"], IsolationForest)
+
+
+import pytest
+
+
+@pytest.mark.parametrize("query,should_have_high_score", [
+    ("DROP TABLE users; SELECT * FROM admin--", True),
+    ("EXEC xp_cmdshell('dir')", True),
+    ("What is supervised learning?", False),
+])
+def test_predict_anomaly_score_direction(trained_model, query, should_have_high_score):
+    from app.features import extract_query_features
+    bundle, _ = trained_model
+    features = extract_query_features(query, [])
+    result = predict_anomaly(bundle, features)
+    if should_have_high_score:
+        assert result["anomaly_score"] > 0.2
+    else:
+        assert result["anomaly_score"] < 0.9
+
+
+def test_train_model_n_train_samples(trained_model):
+    _, metrics = trained_model
+    assert metrics["n_train_samples"] > 0
+
+
+def test_train_model_n_anomaly_samples(trained_model):
+    _, metrics = trained_model
+    assert metrics["n_anomaly_samples"] > 0
+
+
+def test_predict_returns_float_scores(trained_model):
+    from app.features import extract_query_features
+    bundle, _ = trained_model
+    features = extract_query_features("neural networks", [])
+    result = predict_anomaly(bundle, features)
+    assert isinstance(result["anomaly_score"], float)
+    assert isinstance(result["classifier_prob"], float)
+    assert isinstance(result["isolation_score"], float)
