@@ -43,3 +43,17 @@ def test_settings_chunk_overlap_default():
     from app.config import Settings
     s = Settings()
     assert s.chunk_overlap == int(os.getenv("CHUNK_OVERLAP", "16"))
+
+
+def test_settings_log_level_override(monkeypatch):
+    from app.config import Settings
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+    s = Settings()
+    assert s.log_level == "DEBUG"
+
+
+def test_settings_model_path_override(monkeypatch):
+    from app.config import Settings
+    monkeypatch.setenv("MODEL_PATH", "/custom/path/model.pkl")
+    s = Settings()
+    assert s.model_path == "/custom/path/model.pkl"
