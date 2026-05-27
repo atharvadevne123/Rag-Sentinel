@@ -34,6 +34,7 @@ def db_session(test_engine):
 def trained_model():
     from app.features import generate_training_corpus
     from app.model import train_model
+
     X, y = generate_training_corpus(n_normal=100, n_anomaly=20, seed=0)
     bundle, metrics = train_model(X, y)
     return bundle, metrics
@@ -45,6 +46,7 @@ def api_client(trained_model):
     with patch("app.main._model_bundle", bundle):
         from app.database import init_db
         from app.main import app
+
         init_db()
         client = TestClient(app, raise_server_exceptions=False)
         yield client
@@ -53,10 +55,12 @@ def api_client(trained_model):
 @pytest.fixture
 def sample_features():
     from app.features import extract_query_features
+
     return extract_query_features("What is machine learning?", [])
 
 
 @pytest.fixture
 def anomalous_features():
     from app.features import extract_query_features
+
     return extract_query_features("DROP TABLE users; SELECT * FROM admin--", [])

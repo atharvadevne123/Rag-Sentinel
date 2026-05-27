@@ -58,18 +58,21 @@ def test_metrics_n_features(trained_model):
 def test_isolation_forest_in_bundle(trained_model):
     bundle, _ = trained_model
     from sklearn.ensemble import IsolationForest
+
     assert isinstance(bundle["isolation_forest"], IsolationForest)
 
 
-
-
-@pytest.mark.parametrize("query,should_have_high_score", [
-    ("DROP TABLE users; SELECT * FROM admin--", True),
-    ("EXEC xp_cmdshell('dir')", True),
-    ("What is supervised learning?", False),
-])
+@pytest.mark.parametrize(
+    "query,should_have_high_score",
+    [
+        ("DROP TABLE users; SELECT * FROM admin--", True),
+        ("EXEC xp_cmdshell('dir')", True),
+        ("What is supervised learning?", False),
+    ],
+)
 def test_predict_anomaly_score_direction(trained_model, query, should_have_high_score):
     from app.features import extract_query_features
+
     bundle, _ = trained_model
     features = extract_query_features(query, [])
     result = predict_anomaly(bundle, features)
@@ -91,6 +94,7 @@ def test_train_model_n_anomaly_samples(trained_model):
 
 def test_predict_returns_float_scores(trained_model):
     from app.features import extract_query_features
+
     bundle, _ = trained_model
     features = extract_query_features("neural networks", [])
     result = predict_anomaly(bundle, features)
@@ -101,6 +105,7 @@ def test_predict_returns_float_scores(trained_model):
 
 def test_predict_xss_query(trained_model):
     from app.features import extract_query_features
+
     bundle, _ = trained_model
     xss = "<script>alert('xss')</script>"
     features = extract_query_features(xss, [])
@@ -111,12 +116,15 @@ def test_predict_xss_query(trained_model):
 def test_train_model_writes_metrics_file(tmp_path, monkeypatch):
     import json
     import os
+
     import app.model as model_mod
+
     metrics_path = str(tmp_path / "metrics.json")
     model_path = str(tmp_path / "model.joblib")
     monkeypatch.setattr(model_mod, "METRICS_PATH", metrics_path)
     monkeypatch.setattr(model_mod, "MODEL_PATH", model_path)
     from app.features import generate_training_corpus
+
     X, y = generate_training_corpus(n_normal=40, n_anomaly=10, seed=5)
     _, metrics = model_mod.train_model(X, y)
     assert os.path.exists(metrics_path)

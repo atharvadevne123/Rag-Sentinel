@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from pipelines.retrain_dag import check_drift, retrain_if_needed, validate_model
 
 
@@ -48,7 +46,6 @@ def test_validate_model_passes():
 
 def test_check_drift_insufficient_data(tmp_path, monkeypatch):
     """check_drift returns drift_detected=False when fewer than 10 samples exist."""
-    import os
 
     db_url = f"sqlite:///{tmp_path}/test.db"
     monkeypatch.setenv("DATABASE_URL", db_url)
@@ -68,7 +65,6 @@ def test_validate_model_returns_dict():
 
 
 def test_check_drift_returns_dict(tmp_path, monkeypatch):
-    import os
     db_url = f"sqlite:///{tmp_path}/pipeline_test.db"
     monkeypatch.setenv("DATABASE_URL", db_url)
     ctx = _ctx()

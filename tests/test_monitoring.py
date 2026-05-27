@@ -11,6 +11,7 @@ from app.monitoring import (
 
 def test_compute_drift_no_drift():
     import numpy as np
+
     ref = list(np.random.default_rng(0).uniform(0.1, 0.3, 50))
     cur = list(np.random.default_rng(1).uniform(0.1, 0.3, 50))
     result = compute_drift(ref, cur)
@@ -22,6 +23,7 @@ def test_compute_drift_no_drift():
 
 def test_compute_drift_detects_drift():
     import numpy as np
+
     ref = list(np.random.default_rng(0).uniform(0.0, 0.2, 100))
     cur = list(np.random.default_rng(1).uniform(0.8, 1.0, 100))
     result = compute_drift(ref, cur)
@@ -66,11 +68,11 @@ def test_get_system_metrics_structure(db_session):
 
 def test_compute_drift_ks_statistic_range():
     import numpy as np
+
     ref = list(np.random.default_rng(42).normal(0, 1, 100))
     cur = list(np.random.default_rng(42).normal(5, 1, 100))
     result = compute_drift(ref, cur)
     assert 0.0 <= result["ks_statistic"] <= 1.0
-
 
 
 @pytest.mark.parametrize("hours", [1, 6, 24, 72])
@@ -91,6 +93,7 @@ def test_log_prediction_with_response_time(db_session):
 
 def test_compute_drift_symmetric_distributions():
     import numpy as np
+
     ref = list(np.random.default_rng(10).normal(0, 1, 200))
     cur = list(np.random.default_rng(10).normal(0, 1, 200))
     result = compute_drift(ref, cur)
@@ -112,6 +115,7 @@ def test_log_drift_false_detection(db_session):
 
 def test_compute_drift_returns_all_keys():
     import numpy as np
+
     ref = list(np.random.default_rng(99).uniform(0, 1, 30))
     cur = list(np.random.default_rng(100).uniform(0, 1, 30))
     result = compute_drift(ref, cur)

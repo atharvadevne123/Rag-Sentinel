@@ -9,9 +9,7 @@ def test_generate_diagram_runs_without_error(tmp_path, monkeypatch):
     """generate_diagram.py should create the architecture PNG without raising."""
     monkeypatch.chdir(tmp_path)
     result = subprocess.run(
-        [sys.executable, str(
-            os.path.join(os.path.dirname(__file__), "..", "scripts", "generate_diagram.py")
-        )],
+        [sys.executable, str(os.path.join(os.path.dirname(__file__), "..", "scripts", "generate_diagram.py"))],
         capture_output=True,
         text=True,
     )

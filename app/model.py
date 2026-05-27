@@ -44,16 +44,21 @@ def train_model(
         logger.info("No training data provided; generating synthetic corpus.")
         X, y = generate_training_corpus()
 
-    clf_pipe = Pipeline([
-        ("scaler", StandardScaler()),
-        ("classifier", RandomForestClassifier(
-            n_estimators=200,
-            max_depth=6,
-            min_samples_leaf=2,
-            class_weight="balanced",
-            random_state=42,
-        )),
-    ])
+    clf_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "classifier",
+                RandomForestClassifier(
+                    n_estimators=200,
+                    max_depth=6,
+                    min_samples_leaf=2,
+                    class_weight="balanced",
+                    random_state=42,
+                ),
+            ),
+        ]
+    )
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     auc_scores = cross_val_score(clf_pipe, X, y, cv=cv, scoring="roc_auc")
@@ -123,8 +128,7 @@ def predict_anomaly(model_bundle: dict, features: np.ndarray) -> dict:
 
     is_anomaly = bool(clf_prob > ANOMALY_CLASSIFIER_THRESHOLD or iso_label == -1)
     ensemble_score = float(
-        clf_prob * ANOMALY_ENSEMBLE_CLASSIFIER_WEIGHT
-        + (1.0 - (iso_score + 0.5)) * ANOMALY_ENSEMBLE_ISOLATION_WEIGHT
+        clf_prob * ANOMALY_ENSEMBLE_CLASSIFIER_WEIGHT + (1.0 - (iso_score + 0.5)) * ANOMALY_ENSEMBLE_ISOLATION_WEIGHT
     )
 
     return {

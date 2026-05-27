@@ -82,6 +82,7 @@ def test_retrieve_no_results_returns_fallback():
     idx.add(vecs, [text], "fallback_doc")
     # Replace the singleton to inject our index
     import rag.index
+
     rag.index._index_instance = idx
 
     answer, sources = retrieve_and_answer("totally different topic", top_k=3)

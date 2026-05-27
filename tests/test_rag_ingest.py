@@ -78,6 +78,7 @@ def test_ingest_multiple_docs():
     ingest_document("First document about science. " * 10, "doc_a")
     ingest_document("Second document about cooking. " * 10, "doc_b")
     from rag.index import get_index
+
     assert len(get_index()) >= 2
 
 
@@ -97,7 +98,7 @@ def test_ingest_overwrites_previous_chunks():
     first_text = "First version of the document. " * 10
     second_text = "Second updated version of the document. " * 10
     doc_id = "overwrite_test_doc"
-    count1 = ingest_document(first_text, doc_id)
+    ingest_document(first_text, doc_id)
     count2 = ingest_document(second_text, doc_id)
     stored = get_stored_chunks(doc_id)
     assert len(stored) == count2

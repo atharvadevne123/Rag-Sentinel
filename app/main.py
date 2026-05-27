@@ -67,9 +67,7 @@ class QueryRequest(BaseModel):
     top_k: int = Field(default=3, ge=1, le=10)
 
     model_config = {
-        "json_schema_extra": {
-            "examples": [{"query": "What is machine learning?", "use_rag": True, "top_k": 3}]
-        }
+        "json_schema_extra": {"examples": [{"query": "What is machine learning?", "use_rag": True, "top_k": 3}]}
     }
 
 
@@ -90,9 +88,7 @@ class IngestRequest(BaseModel):
     filename: str = Field(default="manual_input")
 
     model_config = {
-        "json_schema_extra": {
-            "examples": [{"text": "Machine learning is a branch of AI.", "doc_id": "doc_001"}]
-        }
+        "json_schema_extra": {"examples": [{"text": "Machine learning is a branch of AI.", "doc_id": "doc_001"}]}
     }
 
 
@@ -107,6 +103,7 @@ def _get_rag_context(query: str, top_k: int) -> tuple:
     """Attempt RAG retrieval; return (answer, sources) or fallback strings."""
     try:
         from rag.retriever import retrieve_and_answer
+
         return retrieve_and_answer(query, top_k=top_k)
     except Exception as exc:
         logger.warning("RAG retrieval failed: %s", exc)

@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base, DocumentIndex, DriftLog, PredictionLog, get_db, init_db
+from app.database import Base, DocumentIndex, DriftLog, PredictionLog, get_db
 
 
 @pytest.fixture
@@ -69,11 +69,14 @@ def test_document_index_unique_doc_id(mem_session):
 
 def test_init_db_creates_tables(tmp_path):
     import os
+
     db_path = str(tmp_path / "test_init.db")
     os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
     # Re-import to pick up new URL
     import importlib
+
     import app.database as db_mod
+
     importlib.reload(db_mod)
     db_mod.init_db()
     assert db_path  # tables created without error

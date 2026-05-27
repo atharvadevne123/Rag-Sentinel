@@ -77,15 +77,16 @@ def test_special_char_ratio_for_injection():
     assert injected[7] > normal[7]
 
 
-
-
-@pytest.mark.parametrize("query,expected_idx,expected_nonzero", [
-    ("SELECT * FROM users", 13, True),
-    ("DROP TABLE admin", 13, True),
-    ("What is gradient descent?", 13, False),
-    ("UNION ALL SELECT password", 13, True),
-    ("Explain BERT embeddings", 13, False),
-])
+@pytest.mark.parametrize(
+    "query,expected_idx,expected_nonzero",
+    [
+        ("SELECT * FROM users", 13, True),
+        ("DROP TABLE admin", 13, True),
+        ("What is gradient descent?", 13, False),
+        ("UNION ALL SELECT password", 13, True),
+        ("Explain BERT embeddings", 13, False),
+    ],
+)
 def test_sql_keyword_feature_parametrized(query, expected_idx, expected_nonzero):
     features = extract_query_features(query)
     if expected_nonzero:

@@ -96,9 +96,7 @@ def retrain_if_needed(**context: Any) -> Dict[str, Any]:
     Returns:
         Dict with 'retrained' flag and optional 'metrics' dict.
     """
-    drift_detected: bool = context["task_instance"].xcom_pull(
-        key="drift_detected", task_ids="check_drift"
-    )
+    drift_detected: bool = context["task_instance"].xcom_pull(key="drift_detected", task_ids="check_drift")
     force_retrain = datetime.utcnow().weekday() == 6  # Always retrain on Sunday
     should_retrain = drift_detected or force_retrain
 

@@ -7,7 +7,7 @@ from typing import List, Optional
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
 
-from app.constants import DRIFT_MIN_SAMPLE_SIZE, DRIFT_P_VALUE_THRESHOLD
+from app.constants import DRIFT_P_VALUE_THRESHOLD
 from app.database import DriftLog, PredictionLog
 
 logger = logging.getLogger(__name__)

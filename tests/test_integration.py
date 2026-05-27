@@ -46,20 +46,26 @@ def integration_client():
 
 
 def test_full_pipeline_ingest_then_predict(integration_client):
-    ingest_resp = integration_client.post("/ingest", json={
-        "text": "Deep learning uses multiple layers of neural networks to learn representations. "
-                "The backpropagation algorithm updates weights during training. "
-                "Convolutional networks are effective for image recognition tasks. " * 5,
-        "doc_id": "integration_doc_001",
-    })
+    ingest_resp = integration_client.post(
+        "/ingest",
+        json={
+            "text": "Deep learning uses multiple layers of neural networks to learn representations. "
+            "The backpropagation algorithm updates weights during training. "
+            "Convolutional networks are effective for image recognition tasks. " * 5,
+            "doc_id": "integration_doc_001",
+        },
+    )
     assert ingest_resp.status_code == 200
     assert ingest_resp.json()["chunks"] >= 1
 
-    predict_resp = integration_client.post("/predict", json={
-        "query": "How do neural networks learn representations?",
-        "use_rag": True,
-        "top_k": 2,
-    })
+    predict_resp = integration_client.post(
+        "/predict",
+        json={
+            "query": "How do neural networks learn representations?",
+            "use_rag": True,
+            "top_k": 2,
+        },
+    )
     assert predict_resp.status_code == 200
     data = predict_resp.json()
     assert "anomaly_score" in data
@@ -67,10 +73,13 @@ def test_full_pipeline_ingest_then_predict(integration_client):
 
 
 def test_anomaly_query_not_passed_to_rag(integration_client):
-    resp = integration_client.post("/predict", json={
-        "query": "DROP TABLE users; SELECT * FROM admin WHERE 1=1 UNION ALL SELECT password--",
-        "use_rag": True,
-    })
+    resp = integration_client.post(
+        "/predict",
+        json={
+            "query": "DROP TABLE users; SELECT * FROM admin WHERE 1=1 UNION ALL SELECT password--",
+            "use_rag": True,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     # Anomalous queries should not receive a RAG answer
@@ -89,16 +98,22 @@ def test_metrics_reflects_predictions(integration_client):
 
 
 def test_ingest_updates_existing_doc(integration_client):
-    integration_client.post("/ingest", json={
-        "text": "First version of the document about AI concepts and machine learning. " * 5,
-        "doc_id": "update_test_doc",
-        "filename": "v1.txt",
-    })
-    resp = integration_client.post("/ingest", json={
-        "text": "Updated version of the document about neural networks and deep learning. " * 5,
-        "doc_id": "update_test_doc",
-        "filename": "v2.txt",
-    })
+    integration_client.post(
+        "/ingest",
+        json={
+            "text": "First version of the document about AI concepts and machine learning. " * 5,
+            "doc_id": "update_test_doc",
+            "filename": "v1.txt",
+        },
+    )
+    resp = integration_client.post(
+        "/ingest",
+        json={
+            "text": "Updated version of the document about neural networks and deep learning. " * 5,
+            "doc_id": "update_test_doc",
+            "filename": "v2.txt",
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["doc_id"] == "update_test_doc"

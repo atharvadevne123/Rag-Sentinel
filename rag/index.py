@@ -35,6 +35,7 @@ class SentinelIndex:
         """Attempt to initialise a FAISS IndexFlatIP; fall back silently."""
         try:
             import faiss  # type: ignore[import]
+
             self._faiss_index = faiss.IndexFlatIP(EMBED_DIM)
             self._faiss_available = True
             logger.debug("FAISS index initialised (dim=%d)", EMBED_DIM)

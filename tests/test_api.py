@@ -11,6 +11,7 @@ from app.features import generate_training_corpus
 @pytest.fixture(scope="module")
 def client():
     from app.model import train_model
+
     X, y = generate_training_corpus(n_normal=80, n_anomaly=20, seed=99)
     bundle, _ = train_model(X, y)
 
@@ -30,6 +31,7 @@ def client():
             db.close()
 
     from app.main import _model_bundle, app
+
     _model_bundle.update(bundle)
     app.dependency_overrides[get_db] = override_db
 
@@ -84,11 +86,14 @@ def test_metrics_endpoint(client):
 
 
 def test_ingest_endpoint(client):
-    resp = client.post("/ingest", json={
-        "text": "Machine learning is a subset of artificial intelligence that enables systems to learn from data.",
-        "doc_id": "test_doc_001",
-        "filename": "test.txt",
-    })
+    resp = client.post(
+        "/ingest",
+        json={
+            "text": "Machine learning is a subset of artificial intelligence that enables systems to learn from data.",
+            "doc_id": "test_doc_001",
+            "filename": "test.txt",
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "ingested"
@@ -175,8 +180,11 @@ def test_retrain_returns_n_features_15(client):
 
 
 def test_ingest_returns_ingested_status(client):
-    resp = client.post("/ingest", json={
-        "text": "Transformer models revolutionised NLP with attention mechanisms. " * 5,
-        "doc_id": "transformer_doc",
-    })
+    resp = client.post(
+        "/ingest",
+        json={
+            "text": "Transformer models revolutionised NLP with attention mechanisms. " * 5,
+            "doc_id": "transformer_doc",
+        },
+    )
     assert resp.json()["status"] == "ingested"

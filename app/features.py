@@ -70,9 +70,7 @@ def extract_query_features(query: str, history: List[str] = None) -> np.ndarray:
     upper_ratio = sum(1 for c in query if c.isupper()) / max(char_len, 1)
     special_ratio = sum(1 for c in query if not c.isalnum() and not c.isspace()) / max(char_len, 1)
 
-    lag1_ratio, lag2_ratio, rolling_mean, rolling_std, len_deviation = _compute_rolling_stats(
-        query, history
-    )
+    lag1_ratio, lag2_ratio, rolling_mean, rolling_std, len_deviation = _compute_rolling_stats(query, history)
     sql_keywords, code_pattern = _compute_injection_features(query)
 
     return np.array(
@@ -98,10 +96,21 @@ def extract_query_features(query: str, history: List[str] = None) -> np.ndarray:
 
 
 FEATURE_NAMES = [
-    "char_len", "word_count", "lexical_diversity", "avg_word_len",
-    "punct_ratio", "digit_ratio", "upper_ratio", "special_ratio",
-    "len_lag1_ratio", "len_lag2_ratio", "rolling_mean_len", "rolling_std_len",
-    "len_deviation", "sql_keywords", "code_pattern",
+    "char_len",
+    "word_count",
+    "lexical_diversity",
+    "avg_word_len",
+    "punct_ratio",
+    "digit_ratio",
+    "upper_ratio",
+    "special_ratio",
+    "len_lag1_ratio",
+    "len_lag2_ratio",
+    "rolling_mean_len",
+    "rolling_std_len",
+    "len_deviation",
+    "sql_keywords",
+    "code_pattern",
 ]
 
 

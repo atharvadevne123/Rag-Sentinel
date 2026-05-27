@@ -35,9 +35,7 @@ class PredictionLog(Base):
     response_time_ms = Column(Float)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
-    __table_args__ = (
-        Index("ix_prediction_logs_created_is_anomaly", "created_at", "is_anomaly"),
-    )
+    __table_args__ = (Index("ix_prediction_logs_created_is_anomaly", "created_at", "is_anomaly"),)
 
     def __repr__(self) -> str:
         return f"<PredictionLog id={self.id} score={self.anomaly_score} anomaly={self.is_anomaly}>"
