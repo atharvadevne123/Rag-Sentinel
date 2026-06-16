@@ -135,3 +135,26 @@ def test_retrieve_score_is_float():
     _, sources = retrieve_and_answer("attention", top_k=1)
     if sources:
         assert isinstance(sources[0]["score"], float)
+
+
+def test_retrieve_min_score_filters_results():
+    ingest_document("machine learning algorithms and models. " * 5, "ml_filter_doc")
+    _, sources_no_filter = retrieve_and_answer("machine learning", top_k=3)
+    # A very high min_score should filter everything out
+    answer, sources_filtered = retrieve_and_answer("machine learning", top_k=3, min_score=999.0)
+    assert answer == "No relevant context found."
+    assert sources_filtered == []
+
+
+def test_retrieve_min_score_zero_no_filtering():
+    ingest_document("neural networks deep learning. " * 5, "nn_doc")
+    _, sources_default = retrieve_and_answer("neural networks", top_k=2)
+    _, sources_zero = retrieve_and_answer("neural networks", top_k=2, min_score=0.0)
+    assert len(sources_default) == len(sources_zero)
+
+
+def test_retrieve_answer_string_nonempty_after_ingest():
+    ingest_document("Gradient descent optimizes loss functions in machine learning. " * 5, "gd_doc")
+    answer, _ = retrieve_and_answer("gradient descent optimization", top_k=2)
+    assert len(answer) > 0
+    assert answer != "No relevant context found."
