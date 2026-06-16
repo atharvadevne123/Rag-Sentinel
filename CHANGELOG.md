@@ -9,15 +9,22 @@ All notable changes to RAG Sentinel are documented here.
 - `/index/stats` endpoint exposing RAG index health (chunk count, doc count, FAISS status)
 - `SentinelIndex.stats()` method for introspection
 - Correlation ID middleware — attaches `X-Request-ID` header to every response
+- `app/middleware.py` module with `CorrelationIdMiddleware` and `RequestTimingMiddleware`
+- `app/utils.py` module with `sanitize_query`, `truncate`, `clamp`, and `chunk_list` helpers
+- `app/schemas.py` centralising all Pydantic request/response models
 - Custom exception hierarchy in `app/exceptions.py` (6 typed exception classes)
+- `compute_score_percentiles` in `app/monitoring.py` (p50/p90/p99 over anomaly scores)
+- `min_score` threshold parameter in `retrieve_and_answer` to filter low-similarity results
+- PEP 561 `py.typed` markers in `app/` and `rag/` packages
 - `N_FEATURES` constant and `Final` type annotations for all constants
 - `__all__` exports in `app` and `rag` packages
 - OpenAPI tags for all endpoints (`health`, `inference`, `documents`, `monitoring`)
 - PostgreSQL connection pool configuration (`DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_POOL_TIMEOUT`)
 - mypy type-check and pip-audit security jobs to GitHub Actions CI
-- 200+ tests across 14 modules (up from 165)
+- 310+ tests across 18 modules (up from 165)
 
 ### Changed
+- `Settings` derives `app_name` from `APP_NAME` constant; `LOG_LEVEL` validated at init
 - `_compute_injection_features` now uses `lru_cache`-backed compiled regex patterns
 - Extracted `_load_model_metrics` helper from `get_system_metrics`
 - `IngestRequest.doc_id` now validates against alphanumeric + dash/dot/underscore pattern
