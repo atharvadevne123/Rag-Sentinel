@@ -2,6 +2,7 @@ import pytest
 
 from app.monitoring import (
     compute_drift,
+    compute_score_percentiles,
     get_recent_scores,
     get_system_metrics,
     log_drift,
@@ -179,3 +180,39 @@ def test_log_drift_and_retrieve(db_session):
     retrieved = db_session.query(DriftLog).filter(DriftLog.id == record.id).first()
     assert retrieved is not None
     assert retrieved.ks_statistic == pytest.approx(0.42)
+
+
+# ---------------------------------------------------------------------------
+# compute_score_percentiles
+# ---------------------------------------------------------------------------
+
+
+def test_compute_score_percentiles_empty():
+    result = compute_score_percentiles([])
+    assert result == {"p50": 0.0, "p90": 0.0, "p99": 0.0}
+
+
+def test_compute_score_percentiles_single_value():
+    result = compute_score_percentiles([0.5])
+    assert result["p50"] == pytest.approx(0.5)
+    assert result["p90"] == pytest.approx(0.5)
+    assert result["p99"] == pytest.approx(0.5)
+
+
+def test_compute_score_percentiles_uniform():
+    scores = [float(i) / 100 for i in range(101)]
+    result = compute_score_percentiles(scores)
+    assert result["p50"] == pytest.approx(0.5, abs=0.01)
+    assert result["p90"] == pytest.approx(0.9, abs=0.01)
+    assert result["p99"] == pytest.approx(0.99, abs=0.01)
+
+
+def test_compute_score_percentiles_keys():
+    result = compute_score_percentiles([0.1, 0.5, 0.9])
+    assert set(result.keys()) == {"p50", "p90", "p99"}
+
+
+def test_compute_score_percentiles_all_same():
+    result = compute_score_percentiles([0.3, 0.3, 0.3])
+    assert result["p50"] == pytest.approx(0.3)
+    assert result["p90"] == pytest.approx(0.3)
