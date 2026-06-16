@@ -107,3 +107,51 @@ def test_search_returns_correct_doc_id():
     q_vec = idx.embed(["machine learning"])[0]
     results = idx.search(q_vec, top_k=1)
     assert results[0][1] == "ml_doc"
+
+
+def test_stats_empty_index():
+    idx = SentinelIndex()
+    s = idx.stats()
+    assert s["chunk_count"] == 0
+    assert s["doc_count"] == 0
+    assert "faiss_available" in s
+
+
+def test_stats_after_add():
+    idx = SentinelIndex()
+    vecs = idx.embed(["chunk a", "chunk b"])
+    idx.add(vecs, ["chunk a", "chunk b"], "doc1")
+    s = idx.stats()
+    assert s["chunk_count"] == 2
+    assert s["doc_count"] == 1
+
+
+def test_search_top_k_greater_than_index():
+    idx = SentinelIndex()
+    vecs = idx.embed(["only one chunk"])
+    idx.add(vecs, ["only one chunk"], "solo")
+    q_vec = idx.embed(["query"])[0]
+    results = idx.search(q_vec, top_k=10)
+    assert len(results) <= 1
+
+
+@pytest.mark.parametrize("text", ["", "a", "hello world", "a" * 500])
+def test_embed_various_lengths(text):
+    idx = SentinelIndex()
+    vecs = idx.embed([text])
+    assert vecs.shape == (1, EMBED_DIM)
+    assert vecs.dtype == np.float32
+
+
+def test_embed_single_token_normalised():
+    idx = SentinelIndex()
+    vecs = idx.embed(["word"])
+    norm = float(np.linalg.norm(vecs[0]))
+    assert abs(norm - 1.0) < 1e-5
+
+
+def test_add_zero_chunks_does_not_raise():
+    idx = SentinelIndex()
+    vecs = np.empty((0, EMBED_DIM), dtype=np.float32)
+    idx.add(vecs, [], "empty_doc")
+    assert len(idx) == 0
