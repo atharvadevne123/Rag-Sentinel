@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import List, Optional
@@ -87,10 +88,13 @@ class QueryResponse(BaseModel):
     response_time_ms: float
 
 
+_MAX_INGEST_BYTES = int(os.getenv("MAX_INGEST_BYTES", str(500_000)))
+
+
 class IngestRequest(BaseModel):
-    text: str = Field(..., min_length=10, max_length=100_000)
-    doc_id: str = Field(..., min_length=1, max_length=64)
-    filename: str = Field(default="manual_input")
+    text: str = Field(..., min_length=10, max_length=_MAX_INGEST_BYTES)
+    doc_id: str = Field(..., min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_\-\.]+$")
+    filename: str = Field(default="manual_input", max_length=256)
 
     model_config = {
         "json_schema_extra": {"examples": [{"text": "Machine learning is a branch of AI.", "doc_id": "doc_001"}]}
