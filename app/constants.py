@@ -29,4 +29,4 @@ DEFAULT_TOP_K: Final[int] = 3
 
 # Application metadata
 APP_NAME: Final[str] = "RAG Sentinel"
-APP_VERSION: Final[str] = "1.0.0"
+APP_VERSION: Final[str] = "1.1.0"
