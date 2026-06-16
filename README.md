@@ -209,10 +209,12 @@ The API will be available at `http://localhost:8000` and Swagger docs at `http:/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET`  | `/health` | Liveness check — model loaded status |
+| `GET`  | `/health` | Liveness check — model loaded status + DB connectivity |
 | `GET`  | `/version` | Current application version string |
 | `POST` | `/predict` | Score a query for anomaly patterns + optional RAG answer |
+| `POST` | `/predict/batch` | Score up to 50 queries in a single request |
 | `POST` | `/ingest` | Add a document to the RAG index |
+| `GET`  | `/index/stats` | RAG index health (chunk count, doc count, FAISS status) |
 | `GET`  | `/metrics` | System metrics, anomaly rate, and drift state |
 | `POST` | `/retrain` | Trigger in-process model retraining |
 
