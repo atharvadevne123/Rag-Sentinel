@@ -128,3 +128,54 @@ def test_log_prediction_is_anomaly_true(db_session):
     record = log_prediction(db_session, "injection query", 0.9, True)
     assert record.is_anomaly is True
     assert record.anomaly_score == 0.9
+
+
+@pytest.mark.parametrize(
+    "ref_mean,cur_mean,expect_drift",
+    [
+        (0.1, 0.9, True),
+        (0.5, 0.5, False),
+        (0.5, 0.52, False),
+    ],
+)
+def test_compute_drift_parametrized_means(ref_mean, cur_mean, expect_drift):
+    import numpy as np
+
+    rng = np.random.default_rng(7)
+    ref = list(rng.normal(ref_mean, 0.3, 100))
+    cur = list(rng.normal(cur_mean, 0.3, 100))
+    result = compute_drift(ref, cur)
+    assert result["drift_detected"] == expect_drift
+
+
+def test_get_system_metrics_model_auc_none_when_no_file(db_session, monkeypatch):
+    import os
+
+    monkeypatch.setenv("METRICS_PATH", "/nonexistent/metrics.json")
+    metrics = get_system_metrics(db_session)
+    assert metrics["model_auc"] is None
+
+
+def test_get_system_metrics_returns_total_after_log(db_session):
+    log_prediction(db_session, "q1", 0.1, False)
+    log_prediction(db_session, "q2", 0.8, True)
+    metrics = get_system_metrics(db_session)
+    assert metrics["total_predictions"] >= 2
+    assert metrics["total_anomalies"] >= 1
+
+
+def test_compute_drift_empty_lists():
+    result = compute_drift([], [])
+    assert result["drift_detected"] is False
+    assert "error" in result
+
+
+def test_log_drift_and_retrieve(db_session):
+    from app.database import DriftLog
+
+    drift = {"ks_statistic": 0.42, "p_value": 0.001, "drift_detected": True}
+    record = log_drift(db_session, drift, sample_size=75)
+    assert record.id is not None
+    retrieved = db_session.query(DriftLog).filter(DriftLog.id == record.id).first()
+    assert retrieved is not None
+    assert retrieved.ks_statistic == pytest.approx(0.42)
