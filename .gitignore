@@ -6,20 +6,43 @@ dist/
 build/
 *.so
 
+# Secrets and local config
 .env
+.env.*
+!.env.example
+
+# Database and model artefacts
 *.db
 *.joblib
 *.faiss
 metrics.json
 retrain_log.json
 
+# Virtual environments
 .venv/
 venv/
 env/
+.python-version
 
+# Test and coverage
 .pytest_cache/
 .ruff_cache/
 htmlcov/
 .coverage
+.coverage.*
+coverage.xml
 
+# Logs and temp files
 *.log
+*.tmp
+*.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
