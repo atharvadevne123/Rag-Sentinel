@@ -41,3 +41,30 @@ def test_main_app_has_version():
     from app.main import APP_VERSION
 
     assert APP_VERSION == __version__
+
+
+def test_rag_all_exports_importable():
+    import rag
+
+    for name in rag.__all__:
+        assert hasattr(rag, name), f"rag.__all__ member {name!r} not importable"
+
+
+def test_app_all_exports():
+    import app
+
+    assert "__version__" in app.__all__
+    assert "__author__" in app.__all__
+
+
+def test_author_is_not_empty():
+    from app import __author__
+
+    assert __author__.strip() != ""
+
+
+def test_exceptions_module_importable():
+    import app.exceptions as exc_mod
+
+    assert hasattr(exc_mod, "RagSentinelError")
+    assert hasattr(exc_mod, "ModelNotLoadedError")
