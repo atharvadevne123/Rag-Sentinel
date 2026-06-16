@@ -1,7 +1,20 @@
 import re
+from functools import lru_cache
 from typing import List, Tuple
 
 import numpy as np
+
+
+@lru_cache(maxsize=2)
+def _sql_pattern() -> re.Pattern:
+    """Return the compiled SQL injection keyword regex (cached)."""
+    return re.compile(r"\b(select|drop|insert|union|exec|script)\b")
+
+
+@lru_cache(maxsize=2)
+def _bracket_pattern() -> re.Pattern:
+    """Return the compiled code-bracket detection regex (cached)."""
+    return re.compile(r"[{}()\[\]<>]")
 
 
 def _compute_rolling_stats(query: str, history: List[str]) -> Tuple[float, float, float, float, float]:
@@ -41,8 +54,8 @@ def _compute_injection_features(query: str) -> Tuple[int, int]:
     Returns:
         Tuple of (sql_keyword_count, code_bracket_count).
     """
-    sql_keywords = len(re.findall(r"\b(select|drop|insert|union|exec|script)\b", query.lower()))
-    code_pattern = len(re.findall(r"[{}()\[\]<>]", query))
+    sql_keywords = len(_sql_pattern().findall(query.lower()))
+    code_pattern = len(_bracket_pattern().findall(query))
     return sql_keywords, code_pattern
 
 
