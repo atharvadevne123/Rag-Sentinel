@@ -114,10 +114,14 @@ def get_system_metrics(db: Session) -> dict:
     Returns:
         Dict with prediction counts, anomaly rate, drift state, and model AUC.
     """
-    total = db.query(PredictionLog).count()
-    anomalies = db.query(PredictionLog).filter(PredictionLog.is_anomaly).count()
-    recent_scores = get_recent_scores(db, hours=1)
-    last_drift = db.query(DriftLog).order_by(DriftLog.created_at.desc()).first()
+    try:
+        total = db.query(PredictionLog).count()
+        anomalies = db.query(PredictionLog).filter(PredictionLog.is_anomaly).count()
+        recent_scores = get_recent_scores(db, hours=1)
+        last_drift = db.query(DriftLog).order_by(DriftLog.created_at.desc()).first()
+    except Exception as exc:
+        logger.error("Database query failed in get_system_metrics: %s", exc)
+        total, anomalies, recent_scores, last_drift = 0, 0, [], None
 
     metrics_path = os.getenv("METRICS_PATH", "metrics.json")
     model_metrics: dict = {}
