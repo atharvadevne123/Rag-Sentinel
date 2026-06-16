@@ -124,3 +124,33 @@ def test_version_consistent_with_health(integration_client):
     health = integration_client.get("/health").json()
     version = integration_client.get("/version").json()
     assert health["version"] == version["version"]
+
+
+def test_batch_predict_in_integration(integration_client):
+    resp = integration_client.post(
+        "/predict/batch",
+        json={"queries": ["What is deep learning?", "DROP TABLE users;--", "Explain attention"], "use_rag": False},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 3
+    assert 0 <= data["anomaly_count"] <= 3
+
+
+def test_index_stats_after_ingest(integration_client):
+    integration_client.post(
+        "/ingest",
+        json={"text": "Transformers use self-attention mechanisms for NLP. " * 5, "doc_id": "stats_doc_001"},
+    )
+    resp = integration_client.get("/index/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["chunk_count"] >= 1
+
+
+def test_retrain_after_predictions(integration_client):
+    for q in ["machine learning", "deep neural networks"]:
+        integration_client.post("/predict", json={"query": q, "use_rag": False})
+    resp = integration_client.post("/retrain")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "retrained"
