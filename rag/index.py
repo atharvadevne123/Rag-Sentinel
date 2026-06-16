@@ -131,6 +131,19 @@ class SentinelIndex:
         top_indices = np.argsort(sims)[::-1][:top_k]
         return [(self.chunks[i], self.doc_ids[i], float(sims[i])) for i in top_indices]
 
+    def stats(self) -> dict:
+        """Return a summary of the index state.
+
+        Returns:
+            Dict with chunk_count, doc_count, faiss_available, and faiss_total keys.
+        """
+        return {
+            "chunk_count": len(self.chunks),
+            "doc_count": len(set(self.doc_ids)),
+            "faiss_available": self._faiss_available,
+            "faiss_total": self._faiss_index.ntotal if self._faiss_available and self._faiss_index else 0,
+        }
+
     def __len__(self) -> int:
         return len(self.chunks)
 
