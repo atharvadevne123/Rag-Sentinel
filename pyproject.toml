@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-sentinel"
-version = "1.0.0"
-description = "Retrieval-Augmented Generation pipeline with monitoring"
+version = "1.1.0"
+description = "Retrieval-Augmented Generation pipeline with anomaly detection, drift monitoring, and batch scoring"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -43,3 +43,18 @@ ignore_missing_imports = true
 warn_return_any = false
 no_error_summary = true
 check_untyped_defs = true
+
+[tool.coverage.run]
+source = ["app", "rag", "pipelines"]
+omit = ["tests/*", "scripts/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "except ImportError:",
+]
