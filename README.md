@@ -253,7 +253,7 @@ pytest tests/ -v --tb=short
 make test
 ```
 
-The test suite has 104+ tests across 9 modules covering:
+The test suite has 200+ tests across 14 modules covering:
 - API endpoints (happy path + edge cases)
 - Model training, cross-validation, and prediction
 - Feature engineering (parametrized)
@@ -276,6 +276,15 @@ Copy `.env.example` to `.env` and adjust:
 | `CHUNK_SIZE` | `128` | Words per document chunk |
 | `CHUNK_OVERLAP` | `16` | Overlapping words between chunks |
 | `LOG_LEVEL` | `INFO` | Python logging level |
+
+---
+
+## Performance Notes
+
+- **Regex caching**: SQL injection and bracket patterns are compiled once via `functools.lru_cache`.
+- **Connection pool**: PostgreSQL connections use configurable pool size (`DB_POOL_SIZE`, default 5).
+- **Batch endpoint**: `/predict/batch` scores up to 50 queries in one request to reduce HTTP overhead.
+- **Settings singleton**: `get_settings()` is cached with `lru_cache` to avoid repeated env-var lookups.
 
 ---
 
