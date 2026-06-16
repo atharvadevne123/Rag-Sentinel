@@ -102,3 +102,45 @@ def test_ingest_overwrites_previous_chunks():
     count2 = ingest_document(second_text, doc_id)
     stored = get_stored_chunks(doc_id)
     assert len(stored) == count2
+
+
+@pytest.mark.parametrize("size,overlap", [(10, 0), (20, 5), (50, 10), (100, 20)])
+def test_chunk_text_parametrized_sizes(size, overlap):
+    text = " ".join(str(i) for i in range(200))
+    chunks = chunk_text(text, size=size, overlap=overlap)
+    assert len(chunks) > 0
+    for c in chunks:
+        assert len(c.split()) <= size
+
+
+def test_chunk_text_zero_overlap():
+    text = " ".join(["word"] * 60)
+    chunks = chunk_text(text, size=20, overlap=0)
+    assert len(chunks) == 3
+    assert all(len(c.split()) == 20 for c in chunks)
+
+
+def test_clean_text_returns_string():
+    result = clean_text("hello world")
+    assert isinstance(result, str)
+
+
+def test_clean_text_only_non_ascii():
+    result = clean_text("\xe9\xf1\xfc")
+    assert isinstance(result, str)
+
+
+def test_ingest_large_document():
+    large_text = "machine learning word " * 5000
+    count = ingest_document(large_text, "large_doc_test")
+    assert count > 10
+
+
+def test_ingest_doc_indexed_in_sentinelindex():
+    text = "vector search is powerful " * 20
+    doc_id = "vector_doc"
+    count = ingest_document(text, doc_id)
+    from rag.index import get_index
+
+    idx = get_index()
+    assert len(idx) >= count
