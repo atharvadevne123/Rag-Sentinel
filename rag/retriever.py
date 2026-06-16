@@ -53,11 +53,11 @@ def _score_sentences(query: str, sentences: List[str]) -> List[Tuple[float, str]
         List of (overlap_score, sentence) tuples.
     """
     q_tokens = set(query.lower().split())
-    scored: List[Tuple[float, str]] = []
-    for sent in sentences:
-        s_tokens = set(sent.lower().split())
-        overlap = len(q_tokens & s_tokens) / max(len(q_tokens), 1)
-        scored.append((overlap, sent))
+    n_q = max(len(q_tokens), 1)
+    scored: List[Tuple[float, str]] = [
+        (len(q_tokens & set(sent.lower().split())) / n_q, sent)
+        for sent in sentences
+    ]
     return scored
 
 
