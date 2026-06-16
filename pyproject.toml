@@ -15,6 +15,10 @@ authors = [{name = "atharvadevne123", email = "devneatharva@gmail.com"}]
 where = ["."]
 include = ["app*", "rag*", "pipelines*"]
 
+[tool.setuptools.package-data]
+app = ["py.typed"]
+rag = ["py.typed"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"
