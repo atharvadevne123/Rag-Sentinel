@@ -41,9 +41,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RAG Sentinel",
-    description="RAG-powered document intelligence with ML anomaly detection and drift monitoring",
+    description=(
+        "RAG-powered document intelligence with ML anomaly detection and drift monitoring. "
+        "Submit text queries for real-time anomaly scoring, ingest documents into the RAG index, "
+        "and monitor model health via drift detection."
+    ),
     version=APP_VERSION,
     lifespan=lifespan,
+    openapi_tags=[
+        {"name": "health", "description": "Service liveness and readiness checks"},
+        {"name": "inference", "description": "Anomaly scoring and RAG-assisted query answers"},
+        {"name": "documents", "description": "Document ingestion into the RAG vector index"},
+        {"name": "monitoring", "description": "System metrics, drift detection, and model retraining"},
+    ],
 )
 
 
@@ -129,7 +139,7 @@ def _get_rag_context(query: str, top_k: int) -> tuple:
         return "RAG index not yet populated. Ingest documents first.", []
 
 
-@app.get("/health")
+@app.get("/health", tags=["health"])
 def health(db: Session = Depends(get_db)) -> dict:
     """Return service liveness, model-loaded status, and database connectivity."""
     db_ok = False
@@ -147,13 +157,13 @@ def health(db: Session = Depends(get_db)) -> dict:
     }
 
 
-@app.get("/version")
+@app.get("/version", tags=["health"])
 def version() -> dict:
     """Return the current application version string."""
     return {"version": APP_VERSION}
 
 
-@app.post("/predict", response_model=QueryResponse)
+@app.post("/predict", response_model=QueryResponse, tags=["inference"])
 def predict(
     req: QueryRequest,
     background_tasks: BackgroundTasks,
@@ -205,7 +215,7 @@ def predict(
     )
 
 
-@app.post("/ingest")
+@app.post("/ingest", tags=["documents"])
 def ingest(req: IngestRequest, db: Session = Depends(get_db)) -> dict:
     """Ingest a document into the RAG index and record it in the database.
 
@@ -237,7 +247,7 @@ def ingest(req: IngestRequest, db: Session = Depends(get_db)) -> dict:
     return {"status": "ingested", "doc_id": req.doc_id, "chunks": chunk_count}
 
 
-@app.get("/metrics")
+@app.get("/metrics", tags=["monitoring"])
 def metrics(db: Session = Depends(get_db)) -> dict:
     """Return system health metrics and optional drift detection results."""
     sys_metrics = get_system_metrics(db)
@@ -254,7 +264,7 @@ def metrics(db: Session = Depends(get_db)) -> dict:
     }
 
 
-@app.get("/index/stats")
+@app.get("/index/stats", tags=["documents"])
 def index_stats() -> dict:
     """Return statistics about the in-memory RAG document index."""
     from rag.index import get_index
@@ -263,7 +273,7 @@ def index_stats() -> dict:
     return idx.stats()
 
 
-@app.post("/retrain", response_model=RetrainResponse)
+@app.post("/retrain", response_model=RetrainResponse, tags=["monitoring"])
 def retrain(db: Session = Depends(get_db)) -> RetrainResponse:
     """Trigger an in-process model retrain using the latest 24-hour scores as reference.
 
