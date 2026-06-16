@@ -2,7 +2,8 @@ import json
 import logging
 import os
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from functools import lru_cache
+from typing import Dict, List, Optional
 
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
@@ -105,6 +106,18 @@ def get_recent_scores(db: Session, hours: int = 24) -> List[float]:
     return [r.anomaly_score for r in rows]
 
 
+def _load_model_metrics(metrics_path: str) -> Dict[str, object]:
+    """Load model metrics from a JSON file, returning an empty dict on failure."""
+    if not os.path.exists(metrics_path):
+        return {}
+    try:
+        with open(metrics_path) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Could not read metrics file %s: %s", metrics_path, exc)
+        return {}
+
+
 def get_system_metrics(db: Session) -> dict:
     """Aggregate system health and model metrics from the database.
 
@@ -124,13 +137,7 @@ def get_system_metrics(db: Session) -> dict:
         total, anomalies, recent_scores, last_drift = 0, 0, [], None
 
     metrics_path = os.getenv("METRICS_PATH", "metrics.json")
-    model_metrics: dict = {}
-    if os.path.exists(metrics_path):
-        try:
-            with open(metrics_path) as f:
-                model_metrics = json.load(f)
-        except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("Could not read metrics file %s: %s", metrics_path, exc)
+    model_metrics = _load_model_metrics(metrics_path)
 
     return {
         "total_predictions": total,
