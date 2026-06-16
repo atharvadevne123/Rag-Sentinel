@@ -188,3 +188,67 @@ def test_ingest_returns_ingested_status(client):
         },
     )
     assert resp.json()["status"] == "ingested"
+
+
+def test_index_stats_endpoint(client):
+    resp = client.get("/index/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "chunk_count" in data
+    assert "doc_count" in data
+    assert "faiss_available" in data
+
+
+def test_predict_response_has_x_request_id_header(client):
+    resp = client.post("/predict", json={"query": "What is AI?", "use_rag": False})
+    assert "x-request-id" in resp.headers
+
+
+def test_predict_custom_request_id_echoed(client):
+    custom_id = "test-correlation-id-123"
+    resp = client.post(
+        "/predict",
+        json={"query": "What is AI?", "use_rag": False},
+        headers={"X-Request-ID": custom_id},
+    )
+    assert resp.headers.get("x-request-id") == custom_id
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "What is supervised learning?",
+        "Explain gradient descent",
+        "How do neural networks work?",
+        "What is the bias-variance tradeoff?",
+    ],
+)
+def test_predict_normal_queries_parametrized(client, query):
+    resp = client.post("/predict", json={"query": query, "use_rag": False})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["response_time_ms"] > 0
+
+
+def test_ingest_invalid_doc_id_rejected(client):
+    resp = client.post(
+        "/ingest",
+        json={
+            "text": "Machine learning is a field of AI. " * 5,
+            "doc_id": "doc id with spaces",
+        },
+    )
+    assert resp.status_code == 422
+
+
+def test_metrics_has_drift_key(client):
+    resp = client.get("/metrics")
+    data = resp.json()
+    assert "drift" in data
+
+
+def test_predict_query_returned_in_response(client):
+    query = "What is reinforcement learning?"
+    resp = client.post("/predict", json={"query": query, "use_rag": False})
+    data = resp.json()
+    assert data["query"] == query
