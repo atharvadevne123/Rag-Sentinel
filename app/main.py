@@ -61,6 +61,11 @@ async def request_timing_middleware(request: Request, call_next) -> Response:
     return response
 
 
+def _sanitize_query(text: str) -> str:
+    """Strip null bytes and ASCII control characters (except tab/newline) from input."""
+    return "".join(ch for ch in text if ch >= " " or ch in "\t\n")
+
+
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=2000)
     use_rag: bool = Field(default=True)
@@ -151,22 +156,23 @@ def predict(
         QueryResponse with anomaly scores and optional RAG answer.
     """
     t0 = time.time()
+    sanitized_query = _sanitize_query(req.query)
 
-    features = extract_query_features(req.query, _query_history[-10:])
+    features = extract_query_features(sanitized_query, _query_history[-10:])
     result = predict_anomaly(_model_bundle, features)
 
     rag_answer: Optional[str] = None
     rag_sources: Optional[List] = None
     if req.use_rag and not result["is_anomaly"]:
-        rag_answer, rag_sources = _get_rag_context(req.query, req.top_k)
+        rag_answer, rag_sources = _get_rag_context(sanitized_query, req.top_k)
 
     elapsed_ms = (time.time() - t0) * 1000
-    _query_history.append(req.query)
+    _query_history.append(sanitized_query)
 
     background_tasks.add_task(
         log_prediction,
         db=db,
-        query=req.query,
+        query=sanitized_query,
         anomaly_score=result["anomaly_score"],
         is_anomaly=result["is_anomaly"],
         rag_used=req.use_rag,
@@ -174,7 +180,7 @@ def predict(
     )
 
     return QueryResponse(
-        query=req.query,
+        query=sanitized_query,
         is_anomaly=result["is_anomaly"],
         anomaly_score=result["anomaly_score"],
         classifier_prob=result["classifier_prob"],
