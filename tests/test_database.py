@@ -113,3 +113,43 @@ def test_multiple_prediction_logs_queryable(mem_session):
     mem_session.commit()
     count = mem_session.query(PredictionLog).count()
     assert count >= 5
+
+
+def test_prediction_log_filter_by_anomaly(mem_session):
+    for i in range(4):
+        rec = PredictionLog(query=f"q{i}", anomaly_score=0.5, is_anomaly=(i < 2))
+        mem_session.add(rec)
+    mem_session.commit()
+    anomalies = mem_session.query(PredictionLog).filter(PredictionLog.is_anomaly).count()
+    assert anomalies == 2
+
+
+def test_document_index_chunk_count_default(mem_session):
+    rec = DocumentIndex(doc_id="no_chunks_doc", filename="empty.txt")
+    mem_session.add(rec)
+    mem_session.commit()
+    assert rec.chunk_count == 0
+
+
+def test_drift_log_created_at_set(mem_session):
+    rec = DriftLog(ks_statistic=0.1, p_value=0.5, drift_detected=False)
+    mem_session.add(rec)
+    mem_session.commit()
+    assert rec.created_at is not None
+
+
+def test_prediction_log_created_at_set(mem_session):
+    rec = PredictionLog(query="time test", anomaly_score=0.3, is_anomaly=False)
+    mem_session.add(rec)
+    mem_session.commit()
+    assert rec.created_at is not None
+
+
+@pytest.mark.parametrize("score,is_anomaly", [(0.0, False), (0.5, True), (1.0, True)])
+def test_prediction_log_various_scores(mem_session, score, is_anomaly):
+    rec = PredictionLog(query="param test", anomaly_score=score, is_anomaly=is_anomaly)
+    mem_session.add(rec)
+    mem_session.commit()
+    retrieved = mem_session.query(PredictionLog).filter(PredictionLog.id == rec.id).first()
+    assert retrieved.anomaly_score == score
+    assert retrieved.is_anomaly == is_anomaly
