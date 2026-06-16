@@ -134,3 +134,52 @@ def test_digit_ratio_increases_with_digits():
     no_digits = extract_query_features("what is machine learning")
     with_digits = extract_query_features("123 456 789 what is 42 learning")
     assert with_digits[5] > no_digits[5]
+
+
+@pytest.mark.parametrize("seed", [0, 1, 42, 99])
+def test_generate_corpus_reproducible_with_seed(seed):
+    X1, y1 = generate_training_corpus(n_normal=30, n_anomaly=5, seed=seed)
+    X2, y2 = generate_training_corpus(n_normal=30, n_anomaly=5, seed=seed)
+    assert np.allclose(X1, X2)
+    assert np.array_equal(y1, y2)
+
+
+def test_single_char_query():
+    features = extract_query_features("a")
+    assert features.shape == (len(FEATURE_NAMES),)
+    assert features[0] == 1
+    assert features[1] == 1
+
+
+def test_empty_history_does_not_raise():
+    features = extract_query_features("test query", [])
+    assert features.shape == (len(FEATURE_NAMES),)
+
+
+@pytest.mark.parametrize(
+    "query,code_bracket_expected",
+    [
+        ("Hello world", False),
+        ("{exec: DROP TABLE}", True),
+        ("<script>alert(1)</script>", True),
+        ("function() { return null; }", True),
+    ],
+)
+def test_code_bracket_feature(query, code_bracket_expected):
+    features = extract_query_features(query)
+    if code_bracket_expected:
+        assert features[14] > 0
+    else:
+        assert features[14] == 0
+
+
+def test_rolling_std_with_history():
+    history = ["short", "a much longer query with many words here", "medium length"]
+    features = extract_query_features("another test query", history)
+    assert features[11] > 0
+
+
+def test_len_deviation_is_non_negative():
+    history = ["hello", "world", "test"]
+    features = extract_query_features("completely different longer query text", history)
+    assert features[12] >= 0.0
