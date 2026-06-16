@@ -64,3 +64,24 @@ def anomalous_features():
     from app.features import extract_query_features
 
     return extract_query_features("DROP TABLE users; SELECT * FROM admin--", [])
+
+
+@pytest.fixture
+def fresh_rag_index():
+    """Provide a fresh SentinelIndex and reset the singleton after the test."""
+    from rag.index import SentinelIndex, reset_index
+
+    reset_index()
+    idx = SentinelIndex()
+    yield idx
+    reset_index()
+
+
+@pytest.fixture
+def populated_rag_index(fresh_rag_index):
+    """SentinelIndex pre-populated with ML document chunks."""
+    from rag.ingest import ingest_document
+
+    text = "Machine learning is a branch of AI that learns from data. " * 10
+    ingest_document(text, "conftest_ml_doc")
+    return fresh_rag_index
