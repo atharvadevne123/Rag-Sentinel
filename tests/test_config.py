@@ -73,9 +73,10 @@ def test_settings_faiss_index_path_default():
 
 def test_settings_app_version_default():
     from app.config import Settings
+    from app.constants import APP_VERSION
 
     s = Settings()
-    assert s.app_version == os.getenv("APP_VERSION", "1.0.0")
+    assert s.app_version == os.getenv("APP_VERSION", APP_VERSION)
 
 
 def test_settings_chunk_size_type():
