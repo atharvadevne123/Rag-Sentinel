@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Dict, List, Optional
 
+import numpy as np
 from scipy.stats import ks_2samp
 from sqlalchemy.orm import Session
 
@@ -116,6 +117,25 @@ def _load_model_metrics(metrics_path: str) -> Dict[str, object]:
     except (OSError, json.JSONDecodeError) as exc:
         logger.warning("Could not read metrics file %s: %s", metrics_path, exc)
         return {}
+
+
+def compute_score_percentiles(scores: List[float]) -> Dict[str, float]:
+    """Compute p50, p90, and p99 percentiles of a score distribution.
+
+    Args:
+        scores: List of anomaly score floats.
+
+    Returns:
+        Dict with keys p50, p90, p99. Returns zeros when the list is empty.
+    """
+    if not scores:
+        return {"p50": 0.0, "p90": 0.0, "p99": 0.0}
+    arr = np.array(scores, dtype=float)
+    return {
+        "p50": round(float(np.percentile(arr, 50)), 4),
+        "p90": round(float(np.percentile(arr, 90)), 4),
+        "p99": round(float(np.percentile(arr, 99)), 4),
+    }
 
 
 def get_system_metrics(db: Session) -> dict:
