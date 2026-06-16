@@ -121,6 +121,21 @@ class IngestRequest(BaseModel):
     }
 
 
+class BatchQueryRequest(BaseModel):
+    queries: List[str] = Field(..., min_length=1, max_length=50)
+    use_rag: bool = Field(default=False)
+
+    model_config = {
+        "json_schema_extra": {"examples": [{"queries": ["What is ML?", "DROP TABLE users;--"], "use_rag": False}]}
+    }
+
+
+class BatchQueryResponse(BaseModel):
+    results: List[dict]
+    total: int
+    anomaly_count: int
+
+
 class RetrainResponse(BaseModel):
     status: str
     auc_mean: float
@@ -212,6 +227,32 @@ def predict(
         rag_answer=rag_answer,
         rag_sources=rag_sources,
         response_time_ms=round(elapsed_ms, 2),
+    )
+
+
+@app.post("/predict/batch", response_model=BatchQueryResponse, tags=["inference"])
+def predict_batch(req: BatchQueryRequest) -> BatchQueryResponse:
+    """Score multiple queries in a single request.
+
+    Args:
+        req: Batch query payload with a list of query strings.
+
+    Returns:
+        BatchQueryResponse with per-query results and aggregate counts.
+    """
+    if not _model_bundle:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    results: List[dict] = []
+    for raw_query in req.queries:
+        query = _sanitize_query(raw_query)
+        features = extract_query_features(query, _query_history[-10:])
+        result = predict_anomaly(_model_bundle, features)
+        results.append({"query": query, **result})
+        _query_history.append(query)
+    return BatchQueryResponse(
+        results=results,
+        total=len(results),
+        anomaly_count=sum(1 for r in results if r["is_anomaly"]),
     )
 
 
