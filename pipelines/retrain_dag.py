@@ -113,13 +113,22 @@ def retrain_if_needed(**context: Any) -> Dict[str, Any]:
     _, metrics = train_model()
     logger.info("Retrain complete. Metrics: %s", metrics)
 
-    with open("retrain_log.json", "a") as f:
-        entry = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "metrics": metrics,
-            "reason": "drift" if drift_detected else "scheduled",
-        }
-        f.write(json.dumps(entry) + "\n")
+    log_path = os.getenv("RETRAIN_LOG_PATH", "retrain_log.json")
+    max_log_bytes = int(os.getenv("RETRAIN_LOG_MAX_BYTES", str(1 * 1024 * 1024)))
+    if os.path.exists(log_path) and os.path.getsize(log_path) > max_log_bytes:
+        rotated = log_path + ".bak"
+        os.replace(log_path, rotated)
+        logger.info("Rotated retrain log: %s -> %s", log_path, rotated)
+    try:
+        with open(log_path, "a") as f:
+            entry = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "metrics": metrics,
+                "reason": "drift" if drift_detected else "scheduled",
+            }
+            f.write(json.dumps(entry) + "\n")
+    except OSError as exc:
+        logger.error("Failed to write retrain log to %s: %s", log_path, exc)
 
     return {"retrained": True, "metrics": metrics}
 
