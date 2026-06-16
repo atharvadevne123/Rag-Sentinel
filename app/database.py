@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timezone
 
@@ -14,13 +15,32 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+logger = logging.getLogger(__name__)
+
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./rag_sentinel.db")
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
-    pool_pre_ping=True,
+_connect_args: dict = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+_pool_kwargs: dict = (
+    {}
+    if DATABASE_URL.startswith("sqlite")
+    else {
+        "pool_size": int(os.getenv("DB_POOL_SIZE", "5")),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "10")),
+        "pool_timeout": int(os.getenv("DB_POOL_TIMEOUT", "30")),
+    }
 )
+
+try:
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args=_connect_args,
+        pool_pre_ping=True,
+        **_pool_kwargs,
+    )
+except Exception as _exc:
+    logger.critical("Failed to create database engine for %s: %s", DATABASE_URL, _exc)
+    raise
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
