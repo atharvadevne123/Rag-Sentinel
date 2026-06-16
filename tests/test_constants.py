@@ -10,6 +10,7 @@ from app.constants import (
     DRIFT_MIN_SAMPLE_SIZE,
     DRIFT_P_VALUE_THRESHOLD,
     FEATURE_ROLLING_WINDOW,
+    N_FEATURES,
     QUERY_HISTORY_WINDOW,
 )
 
@@ -62,3 +63,29 @@ def test_drift_p_value_is_float():
 
 def test_classifier_threshold_less_than_half():
     assert ANOMALY_CLASSIFIER_THRESHOLD <= 0.5
+
+
+def test_n_features_is_15():
+    assert N_FEATURES == 15
+
+
+def test_n_features_matches_feature_names():
+    from app.features import FEATURE_NAMES
+
+    assert N_FEATURES == len(FEATURE_NAMES)
+
+
+def test_ensemble_classifier_weight_positive():
+    assert ANOMALY_ENSEMBLE_CLASSIFIER_WEIGHT > 0.0
+
+
+def test_ensemble_isolation_weight_positive():
+    assert ANOMALY_ENSEMBLE_ISOLATION_WEIGHT > 0.0
+
+
+def test_drift_min_sample_size_type():
+    assert isinstance(DRIFT_MIN_SAMPLE_SIZE, int)
+
+
+def test_default_top_k_type():
+    assert isinstance(DEFAULT_TOP_K, int)
