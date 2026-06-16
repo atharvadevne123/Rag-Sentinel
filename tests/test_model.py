@@ -131,3 +131,57 @@ def test_train_model_writes_metrics_file(tmp_path, monkeypatch):
     with open(metrics_path) as f:
         saved = json.load(f)
     assert saved["auc_mean"] == metrics["auc_mean"]
+
+
+def test_load_model_trains_when_missing(tmp_path, monkeypatch):
+    import app.model as model_mod
+
+    monkeypatch.setattr(model_mod, "MODEL_PATH", str(tmp_path / "nonexistent.joblib"))
+    monkeypatch.setattr(model_mod, "METRICS_PATH", str(tmp_path / "metrics.json"))
+    bundle = model_mod.load_model()
+    assert "classifier" in bundle
+    assert "isolation_forest" in bundle
+
+
+def test_predict_feature_mismatch_raises(trained_model):
+    import numpy as np
+
+    bundle, _ = trained_model
+    wrong_features = np.zeros(5, dtype=np.float32)
+    with pytest.raises(ValueError, match="Feature count mismatch"):
+        predict_anomaly(bundle, wrong_features)
+
+
+@pytest.mark.parametrize("n_normal,n_anomaly,seed", [(50, 10, 1), (100, 20, 2), (200, 30, 3)])
+def test_train_model_various_corpus_sizes(n_normal, n_anomaly, seed):
+    from app.features import generate_training_corpus
+
+    X, y = generate_training_corpus(n_normal=n_normal, n_anomaly=n_anomaly, seed=seed)
+    bundle, metrics = train_model(X, y)
+    assert metrics["auc_mean"] >= 0.5
+    assert metrics["n_train_samples"] == n_normal + n_anomaly
+
+
+def test_ensemble_score_is_bounded(trained_model):
+    import numpy as np
+
+    bundle, _ = trained_model
+    queries = [
+        "What is machine learning?",
+        "DROP TABLE users; --",
+        "normal query about AI",
+        "SELECT password FROM admin",
+    ]
+    for q in queries:
+        features = np.zeros(15, dtype=np.float32)
+        result = predict_anomaly(bundle, features)
+        assert result["anomaly_score"] >= 0.0
+
+
+def test_predict_isolation_score_is_float(trained_model):
+    import numpy as np
+
+    bundle, _ = trained_model
+    features = np.zeros(15, dtype=np.float32)
+    result = predict_anomaly(bundle, features)
+    assert isinstance(result["isolation_score"], float)
