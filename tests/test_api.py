@@ -130,7 +130,7 @@ def test_version_endpoint(client):
     assert resp.status_code == 200
     data = resp.json()
     assert "version" in data
-    assert data["version"] == "1.0.0"
+    assert data["version"] == "1.1.0"
 
 
 def test_predict_top_k_min(client):
