@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timezone
+from typing import Generator
 
 from sqlalchemy import (
     Boolean,
@@ -91,7 +92,7 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
 
 
-def get_db():
+def get_db() -> Generator:
     """Yield a SQLAlchemy session and ensure it is closed after use."""
     db = SessionLocal()
     try:
