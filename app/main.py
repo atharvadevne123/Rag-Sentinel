@@ -254,6 +254,15 @@ def metrics(db: Session = Depends(get_db)) -> dict:
     }
 
 
+@app.get("/index/stats")
+def index_stats() -> dict:
+    """Return statistics about the in-memory RAG document index."""
+    from rag.index import get_index
+
+    idx = get_index()
+    return idx.stats()
+
+
 @app.post("/retrain", response_model=RetrainResponse)
 def retrain(db: Session = Depends(get_db)) -> RetrainResponse:
     """Trigger an in-process model retrain using the latest 24-hour scores as reference.
