@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import uuid
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
@@ -44,6 +45,15 @@ app = FastAPI(
     version=APP_VERSION,
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def correlation_id_middleware(request: Request, call_next) -> Response:
+    """Attach a unique X-Request-ID header to every response for tracing."""
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    response: Response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @app.middleware("http")
