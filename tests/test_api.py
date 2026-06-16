@@ -252,3 +252,37 @@ def test_predict_query_returned_in_response(client):
     resp = client.post("/predict", json={"query": query, "use_rag": False})
     data = resp.json()
     assert data["query"] == query
+
+
+def test_batch_predict_endpoint(client):
+    resp = client.post(
+        "/predict/batch",
+        json={"queries": ["What is AI?", "DROP TABLE users;--", "Explain transformers"]},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 3
+    assert len(data["results"]) == 3
+    assert "anomaly_count" in data
+
+
+def test_batch_predict_all_results_have_required_keys(client):
+    resp = client.post(
+        "/predict/batch",
+        json={"queries": ["What is machine learning?", "SELECT * FROM admin"]},
+    )
+    data = resp.json()
+    for result in data["results"]:
+        assert "query" in result
+        assert "is_anomaly" in result
+        assert "anomaly_score" in result
+
+
+def test_batch_predict_anomaly_count_accurate(client):
+    resp = client.post(
+        "/predict/batch",
+        json={"queries": ["What is AI?", "EXEC xp_cmdshell('dir')"]},
+    )
+    data = resp.json()
+    counted = sum(1 for r in data["results"] if r["is_anomaly"])
+    assert data["anomaly_count"] == counted
