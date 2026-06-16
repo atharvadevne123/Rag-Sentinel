@@ -6,7 +6,6 @@ import pytest
 
 from app.utils import chunk_list, clamp, sanitize_query, truncate
 
-
 # ---------------------------------------------------------------------------
 # sanitize_query
 # ---------------------------------------------------------------------------

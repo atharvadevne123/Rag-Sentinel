@@ -150,7 +150,6 @@ def test_compute_drift_parametrized_means(ref_mean, cur_mean, expect_drift):
 
 
 def test_get_system_metrics_model_auc_none_when_no_file(db_session, monkeypatch):
-    import os
 
     monkeypatch.setenv("METRICS_PATH", "/nonexistent/metrics.json")
     metrics = get_system_metrics(db_session)

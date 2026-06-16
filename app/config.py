@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 
-from app.constants import APP_NAME, APP_VERSION as _DEFAULT_VERSION
+from app.constants import APP_NAME
+from app.constants import APP_VERSION as _DEFAULT_VERSION
 
 _VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 

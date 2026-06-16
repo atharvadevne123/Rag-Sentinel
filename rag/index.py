@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
+
 def _parse_int_env(name: str, default: int, minimum: int = 1) -> int:
     """Parse an integer environment variable with a safe fallback on error."""
     raw = os.getenv(name, str(default))
