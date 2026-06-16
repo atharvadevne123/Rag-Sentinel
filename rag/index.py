@@ -5,8 +5,23 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "128"))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "16"))
+def _parse_int_env(name: str, default: int, minimum: int = 1) -> int:
+    """Parse an integer environment variable with a safe fallback on error."""
+    raw = os.getenv(name, str(default))
+    try:
+        value = int(raw)
+        if value < minimum:
+            raise ValueError(f"{name}={value} is below minimum {minimum}")
+        return value
+    except (ValueError, TypeError):
+        logging.getLogger(__name__).warning(
+            "Invalid value %r for env var %s; using default %d", raw, name, default
+        )
+        return default
+
+
+CHUNK_SIZE = _parse_int_env("CHUNK_SIZE", 128, minimum=1)
+CHUNK_OVERLAP = _parse_int_env("CHUNK_OVERLAP", 16, minimum=0)
 EMBED_DIM = 384
 INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "rag_index.faiss")
 
