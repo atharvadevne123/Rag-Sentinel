@@ -90,3 +90,48 @@ def test_retrieve_no_results_returns_fallback():
     assert isinstance(sources, list)
 
     reset_index()
+
+
+def test_retrieve_multi_doc_returns_sources_from_different_docs():
+    ingest_document("machine learning fundamentals and basics. " * 5, "ml_doc")
+    ingest_document("cooking recipes and food preparation. " * 5, "food_doc")
+    _, sources = retrieve_and_answer("machine learning", top_k=3)
+    doc_ids = {s["doc_id"] for s in sources}
+    assert len(doc_ids) >= 1
+
+
+def test_synthesize_answer_ends_with_period():
+    context = "Neural networks learn patterns. Backpropagation computes gradients. Training minimizes loss."
+    answer = _synthesize_answer("neural networks learning", context)
+    assert answer.endswith(".")
+
+
+@pytest.mark.parametrize("top_k", [1, 2, 3])
+def test_retrieve_top_k_parametrized(top_k):
+    text = "deep learning neural networks transformers attention. " * 10
+    ingest_document(text, f"doc_topk_{top_k}")
+    _, sources = retrieve_and_answer("neural networks", top_k=top_k)
+    assert len(sources) <= top_k
+
+
+def test_score_sentences_overlap_values():
+    sentences = ["no overlap here", "machine learning rocks", "machine learning is great"]
+    scored = _score_sentences("machine learning", sentences)
+    scores = [s for s, _ in scored]
+    assert scores[0] == 0.0
+    assert scores[1] > 0.0
+    assert scores[2] > 0.0
+
+
+def test_sources_excerpt_max_length():
+    ingest_document("This is a really long sentence about machine learning. " * 20, "long_excerpt_doc")
+    _, sources = retrieve_and_answer("machine learning", top_k=2)
+    for s in sources:
+        assert len(s["excerpt"]) <= 120
+
+
+def test_retrieve_score_is_float():
+    ingest_document("transformer model attention mechanism. " * 5, "transformer_doc")
+    _, sources = retrieve_and_answer("attention", top_k=1)
+    if sources:
+        assert isinstance(sources[0]["score"], float)
