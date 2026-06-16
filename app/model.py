@@ -122,6 +122,12 @@ def predict_anomaly(model_bundle: dict, features: np.ndarray) -> dict:
 
     feat_2d = features.reshape(1, -1)
 
+    expected_n_features = clf.n_features_in_
+    if feat_2d.shape[1] != expected_n_features:
+        raise ValueError(
+            f"Feature count mismatch: model expects {expected_n_features}, got {feat_2d.shape[1]}"
+        )
+
     clf_prob = float(clf.predict_proba(feat_2d)[0][1])
     iso_score = float(iso.decision_function(feat_2d)[0])
     iso_label = int(iso.predict(feat_2d)[0])  # -1 = anomaly, 1 = normal
