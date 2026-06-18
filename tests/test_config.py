@@ -91,7 +91,15 @@ def test_settings_all_attributes_present():
     from app.config import Settings
 
     s = Settings()
-    required = ["database_url", "model_path", "metrics_path", "faiss_index_path",
-                "chunk_size", "chunk_overlap", "log_level", "app_version"]
+    required = [
+        "database_url",
+        "model_path",
+        "metrics_path",
+        "faiss_index_path",
+        "chunk_size",
+        "chunk_overlap",
+        "log_level",
+        "app_version",
+    ]
     for attr in required:
         assert hasattr(s, attr), f"Settings missing attribute: {attr}"

@@ -65,10 +65,7 @@ def _score_sentences(query: str, sentences: List[str]) -> List[Tuple[float, str]
     """
     q_tokens = set(query.lower().split())
     n_q = max(len(q_tokens), 1)
-    scored: List[Tuple[float, str]] = [
-        (len(q_tokens & set(sent.lower().split())) / n_q, sent)
-        for sent in sentences
-    ]
+    scored: List[Tuple[float, str]] = [(len(q_tokens & set(sent.lower().split())) / n_q, sent) for sent in sentences]
     return scored
 
 

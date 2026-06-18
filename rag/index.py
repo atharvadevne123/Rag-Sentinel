@@ -15,9 +15,7 @@ def _parse_int_env(name: str, default: int, minimum: int = 1) -> int:
             raise ValueError(f"{name}={value} is below minimum {minimum}")
         return value
     except (ValueError, TypeError):
-        logging.getLogger(__name__).warning(
-            "Invalid value %r for env var %s; using default %d", raw, name, default
-        )
+        logging.getLogger(__name__).warning("Invalid value %r for env var %s; using default %d", raw, name, default)
         return default
 
 
