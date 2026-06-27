@@ -19,5 +19,5 @@ matplotlib>=3.9.4
 # apache-airflow>=2.9.0
 
 # Testing
-pytest>=8.4.2
+pytest>=9.1.1
 pytest-asyncio>=1.2.0
