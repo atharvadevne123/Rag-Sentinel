@@ -9,7 +9,7 @@ scipy>=1.13.1
 numpy>=2.0.2
 python-dotenv>=1.2.1
 httpx>=0.28.1
-fpdf2>=2.8.4
+fpdf2>=2.8.7
 matplotlib>=3.9.4
 
 # Optional accelerated retrieval
